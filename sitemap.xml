@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://example.com/google6d46e953a7c60fe2.html</loc>
+    <loc>https://cloudy-blog.netlify.app/google6d46e953a7c60fe2.html</loc>
     
     <lastmod>2024-08-16</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>http://example.com/about/index.html</loc>
+    <loc>https://cloudy-blog.netlify.app/about/index.html</loc>
     
     <lastmod>2024-08-16</lastmod>
     
@@ -20,7 +20,7 @@
   </url>
   
   <url>
-    <loc>http://example.com/tags/index.html</loc>
+    <loc>https://cloudy-blog.netlify.app/tags/index.html</loc>
     
     <lastmod>2024-08-16</lastmod>
     
@@ -29,7 +29,7 @@
   </url>
   
   <url>
-    <loc>http://example.com/categories/index.html</loc>
+    <loc>https://cloudy-blog.netlify.app/categories/index.html</loc>
     
     <lastmod>2024-08-16</lastmod>
     
@@ -38,7 +38,7 @@
   </url>
   
   <url>
-    <loc>http://example.com/2022/10/25/welcome-to-use-hexo-theme-keep/</loc>
+    <loc>https://cloudy-blog.netlify.app/2022/10/25/welcome-to-use-hexo-theme-keep/</loc>
     
     <lastmod>2024-08-16</lastmod>
     
@@ -48,7 +48,7 @@
   
 
   <url>
-    <loc>http://example.com/</loc>
+    <loc>https://cloudy-blog.netlify.app/</loc>
     <lastmod>2024-08-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -56,14 +56,14 @@
 
   
   <url>
-    <loc>http://example.com/tags/Hexo/</loc>
+    <loc>https://cloudy-blog.netlify.app/tags/Hexo/</loc>
     <lastmod>2024-08-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>http://example.com/tags/Keep/</loc>
+    <loc>https://cloudy-blog.netlify.app/tags/Keep/</loc>
     <lastmod>2024-08-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -72,7 +72,7 @@
 
   
   <url>
-    <loc>http://example.com/categories/Hexo/</loc>
+    <loc>https://cloudy-blog.netlify.app/categories/Hexo/</loc>
     <lastmod>2024-08-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
