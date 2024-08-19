@@ -9,7 +9,7 @@
     
     <title>
         
-            關於這裡 |
+            Category: AI |
         
         Cloudy&#39;s blog
     </title>
@@ -112,7 +112,7 @@
                         </li>
                     
                         
-                        <li class="menu-item flex-start border-box active">
+                        <li class="menu-item flex-start border-box">
                             <a class="menu-text-color border-box" href="/about">
                                 
                                 ABOUT
@@ -179,7 +179,7 @@
                 </li>
             
                 
-                <li class="drawer-menu-item border-box not-sub-menu active">
+                <li class="drawer-menu-item border-box not-sub-menu">
                     <label class="drawer-menu-label border-box">
                         <a class="drawer-menu-text-color left-side flex-start border-box" href="/about">
                             
@@ -205,143 +205,40 @@
             <div class="main-content border-box">
                 
 
-                    
-
-<div class="fade-in-down-animation">
-    <div class="page-template-container border-box keep-container ">
-        <!-- page top -->
-        
-
-        <!-- page bottom -->
-        <div class="page-template-bottom border-box">
-            <!-- use page template -->
+                    <div class="fade-in-down-animation">
+    <div class="category-archive-container border-box">
+        <div class="category-name">
+            <i class="fas fa-folder"></i>&nbsp;AI
+        </div>
+        <div class="category-post-list">
             
-
-            <!-- page content -->
-            <div class="page-content border-box keep-markdown-body ">
-                
-                    <h2 id="關於這裡"><a href="#關於這裡" class="headerlink" title="關於這裡"></a>關於這裡</h2><p>哈囉你好！</p>
-<p>這裡只是我用來記錄自己在開發程式上遇到的各種問題和解決方法的地方，如果有人遇到相同的問題，歡迎參考裡面的內容～</p>
-<p>不過我要先說明一下，我也只是一個程式設計的新手，寫的不一定都是正確的，也可能不是最好的解決方案。</p>
-<p>如果你發現有什麼問題或有更好的建議，歡迎隨時留言告訴我。大家可以一起討論、一起進步！</p>
-<p>謝謝囉～</p>
-
-                
+<div class="archive-list-container border-box">
+    
+        <section class="archive-item border-box">
+            <div class="archive-item-header border-box">
+                <span class="archive-year">2024</span>
             </div>
-
-            <!-- comment plugin -->
-            
+            <ul class="archive-item-body border-box">
                 
-
-
-    <div class="comments-container border-box">
-        <div id="comments-anchor" class="comment-area-title border-box">
-            <i class="fas fa-comments"></i>&nbsp;Comments
-        </div>
-        <div class="comment-plugin-fail border-box">
-    <span class="fail-tip">Comment plugin failed to load</span>
-    <button class="reload keep-button">Click to reload</button>
+                    <li class="post-item border-box">
+                        <span class="starting-point border-box flex-center"></span>
+                        <span class="post-date border-box">08-19</span>
+                        <a class="post-title border-box text-ellipsis"
+                           href="/2024/08/19/RAGAS/"
+                        >怎麼使用RAGAS？</a>
+                    </li>
+                
+            </ul>
+        </section>
+    
 </div>
-<div class="comment-plugin-loading flex-center border-box">
-    <i class="loading-icon fa-solid fa-spinner fa-spin"></i>
-    <span class="load-tip">Loading comment plugin</span>
-</div>
-<script data-pjax>
-  window.KeepCommentPlugin = {}
-  window.KeepCommentPlugin.hideLoading = () => {
-    const cplDom = document.querySelector('.comments-container .comment-plugin-loading')
-    cplDom.style.display = 'none'
-  }
-  window.KeepCommentPlugin.loadFailHandle = () => {
-    window.KeepCommentPlugin.hideLoading()
-    const cpfDom = document.querySelector('.comments-container .comment-plugin-fail')
-    cpfDom.style.display = 'flex'
-    cpfDom.querySelector('.reload').addEventListener('click', () => {
-      window.location.reload()
-    })
-  }
-</script>
 
-        
-            
-
-    <div class="giscus-comments-container">
-        <div class="giscus" id="giscus"></div>
-        <script data-pjax
-                onerror="window.KeepCommentPlugin.loadFailHandle()"
-        >
-          if (!window.KeepCommentPlugin?.getGiscusTheme) {
-            window.KeepCommentPlugin.getGiscusTheme = () => {
-              return document.documentElement.classList.contains('dark-mode') ? 'dark_dimmed' : 'light_tritanopia'
-            }
-          }
-
-          if (!window.KeepCommentPlugin?.changeGiscusTheme) {
-            window.KeepCommentPlugin.changeGiscusTheme = () => {
-              const iframe = document.querySelector('iframe.giscus-frame')
-              iframe && iframe.contentWindow.postMessage({
-                giscus: {
-                  setConfig: {
-                    theme: window.KeepCommentPlugin.getGiscusTheme()
-                  }
-                }
-              }, 'https://giscus.app')
-            }
-          }
-
-          if (!window.KeepCommentPlugin?.initGiscus) {
-            window.KeepCommentPlugin.initGiscus = () => {
-              const script = document.createElement('script')
-              script.async = true
-              script.src = 'https://giscus.app/client.js'
-              script.setAttribute('data-repo', 'chui359/gitalkMessage')
-              script.setAttribute('data-repo-id', 'R_kgDOMkQ00w')
-              script.setAttribute('data-category', 'Announcements')
-              script.setAttribute('data-category-id', 'DIC_kwDOMkQ0084Chter')
-              script.setAttribute('data-reactions-enabled', '1')
-              script.setAttribute('data-lang', 'en')
-              script.setAttribute('data-mapping', 'pathname')
-              script.setAttribute('data-strict', '0')
-              script.setAttribute('data-emit-metadata', '0')
-              script.setAttribute('data-input-position', 'top')
-              script.setAttribute('crossorigin', 'anonymous')
-              script.setAttribute('loading', 'lazy')
-              script.setAttribute('data-theme', window.KeepCommentPlugin.getGiscusTheme())
-              document.querySelector('.giscus-comments-container').appendChild(script)
-              script.onerror = () => {
-                window.KeepCommentPlugin.loadFailHandle()
-              }
-              script.onload = () => {
-                window.KeepCommentPlugin.hideLoading()
-              }
-              const toggleThemeBtn = document.querySelector('.tool-toggle-theme-mode')
-              toggleThemeBtn && toggleThemeBtn.addEventListener('click', () => {
-                window.KeepCommentPlugin.changeGiscusTheme()
-              })
-            }
-          }
-
-          if ('true' === "true") {
-            setTimeout(() => {
-              window.KeepCommentPlugin.initGiscus()
-            }, 1000)
-          } else {
-            window.addEventListener("DOMContentLoaded", window.KeepCommentPlugin.initGiscus)
-          }
-        </script>
-    </div>
-
-
-        
-    </div>
-
-
-
-
-
-            
         </div>
     </div>
+    
+
+
+
 </div>
 
 
@@ -482,6 +379,7 @@
 
 
 
+
 <!-- common js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/utils.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/header-shrink.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/back2top.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/toggle-theme.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/code-block.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/main.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/libs/anime.min.js"></script>
 
@@ -503,6 +401,8 @@
     
 
     <!-- categories page -->
+    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.1/js/page/category-page.min.js"></script>
     
 
     <!-- links page -->
