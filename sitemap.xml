@@ -2,9 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://cloudy-blog.netlify.app/2024/08/20/%E9%80%8F%E9%81%8EJsonSerializerOptions%E6%8E%92%E9%99%A4%E5%9B%9E%E5%82%B3-null-%E5%80%BC%E7%9A%84%E6%96%B9%E6%B3%95/</loc>
+    
+    <lastmod>2024-08-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://cloudy-blog.netlify.app/2024/08/19/RAGAS/</loc>
     
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -58,7 +67,7 @@
 
   <url>
     <loc>https://cloudy-blog.netlify.app/</loc>
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -66,21 +75,42 @@
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/Hexo/</loc>
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/RAG/</loc>
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/LLM/</loc>
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/python/</loc>
+    <lastmod>2024-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/C/</loc>
+    <lastmod>2024-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/NET-Framework/</loc>
+    <lastmod>2024-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -89,14 +119,14 @@
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/Hexo/</loc>
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/AI/</loc>
-    <lastmod>2024-08-19</lastmod>
+    <lastmod>2024-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
