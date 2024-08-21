@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://cloudy-blog.netlify.app/blog/minimal-api-error-handling-in-different-environments/</loc>
+    <loc>https://cloudy-blog.netlify.app/blog/exclude-null-values-with-jsonserializeroptions/</loc>
     
     <lastmod>2024-08-21</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>https://cloudy-blog.netlify.app/blog/exclude-null-values-with-jsonserializeroptions/</loc>
+    <loc>https://cloudy-blog.netlify.app/blog/minimal-api-error-handling-in-different-environments/</loc>
     
     <lastmod>2024-08-21</lastmod>
     
@@ -148,7 +148,7 @@
   </url>
   
   <url>
-    <loc>https://cloudy-blog.netlify.app/categories/C-%E9%96%8B%E7%99%BC%E7%B4%80%E9%8C%84/</loc>
+    <loc>https://cloudy-blog.netlify.app/categories/C/</loc>
     <lastmod>2024-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
