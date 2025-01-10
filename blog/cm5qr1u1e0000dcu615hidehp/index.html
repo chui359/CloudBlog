@@ -9,7 +9,7 @@
     
     <title>
         
-            怎麼使用RAGAS？ |
+            在AWS的Multi-Agent Orchestrator中練習使用SupervisorAgent來實現同時處理多個用戶請求 |
         
         Cloudy&#39;s blog
     </title>
@@ -214,7 +214,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        怎麼使用RAGAS？
+                        在AWS的Multi-Agent Orchestrator中練習使用SupervisorAgent來實現同時處理多個用戶請求
                     </div>
                 
 
@@ -240,12 +240,12 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2024-08-19 16:47:46</span>
+                <span class="datetime">2025-01-10 20:42:13</span>
             </span>
 
             <span class="meta-info-item post-update-date">
                 <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                <span class="datetime" data-updated="Wed Aug 21 2024 20:53:46 GMT+0800">2024-08-21 20:53:46</span>
+                <span class="datetime" data-updated="Fri Jan 10 2025 20:47:28 GMT+0800">2025-01-10 20:47:28</span>
             </span>
         
 
@@ -264,13 +264,13 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/RAG/">RAG</a></li>
-                        
-                    
                             <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/LLM/">LLM</a></li>
                         
                     
                             <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/python/">python</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/AWS/">AWS</a></li>
                         
                     
                 </ul>
@@ -299,90 +299,30 @@
                     
 
                     
-                         <p>因為工作需求需要研究一下RAGAS，但是發現中文相關的資訊並不多，所以我主要參考了官方的文件，建立了一個簡單的python實作，並透過這個實作稍微簡單的介紹一下RAGAS是什麼。</p>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一般來說，對於RAG系統的評估通常會依賴於人工標註的真實數據，但這種方法耗時且成本高。為了應對這個狀況，出現 RAGAS（Retrieval Augmented Generation Assessment），這是一種不需要依賴人工標註的評估框架。RAGAS提供了一套衡量指標，可以用來評估RAG系統中的不同維度，從而實現更快速的評估循環。</p>
-<h3 id="1-語言模型的知識庫角色與局限性"><a href="#1-語言模型的知識庫角色與局限性" class="headerlink" title="1. 語言模型的知識庫角色與局限性"></a>1. 語言模型的知識庫角色與局限性</h3><ul>
-<li>語言模型（LMs）能夠捕捉大量世界知識，回答問題無需訪問外部來源。</li>
-<li>大型語言模型（LLMs）在各種問題回答基準上表現出與人類相當的能力，但仍存在兩個基本限制：<ol>
-<li>無法回答訓練之後發生的資訊。</li>
-<li>難以使用訓練資料中很少提及的知識。</li>
+                         <p>為了理解相關Multi-Agent的運作邏輯，在這裡練習使用 <code>Multi-Agent Orchestrator</code> 框架來實現多代理協同處理用戶請求。</p>
+<h2 id="運作邏輯"><a href="#運作邏輯" class="headerlink" title="運作邏輯"></a>運作邏輯</h2><h3 id="初始化-Orchestrator"><a href="#初始化-Orchestrator" class="headerlink" title="初始化 Orchestrator"></a>初始化 Orchestrator</h3><p>初始化分類器的相關設定。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 創建一個多代理協同管理器 (orchestrator)</span></span><br><span class="line">orchestrator = MultiAgentOrchestrator(options=OrchestratorConfig(</span><br><span class="line">  LOG_AGENT_CHAT=<span class="literal">True</span>,                <span class="comment"># 記錄代理聊天</span></span><br><span class="line">  LOG_CLASSIFIER_CHAT=<span class="literal">True</span>,           <span class="comment"># 記錄分類器聊天</span></span><br><span class="line">  LOG_CLASSIFIER_RAW_OUTPUT=<span class="literal">True</span>,     <span class="comment"># 記錄分類器的原始輸出</span></span><br><span class="line">  LOG_CLASSIFIER_OUTPUT=<span class="literal">True</span>,         <span class="comment"># 記錄分類器輸出</span></span><br><span class="line">  LOG_EXECUTION_TIMES=<span class="literal">True</span>,           <span class="comment"># 記錄執行時間</span></span><br><span class="line">  MAX_RETRIES=<span class="number">3</span>,                      <span class="comment"># 最大重試次數</span></span><br><span class="line">  USE_DEFAULT_AGENT_IF_NONE_IDENTIFIED=<span class="literal">True</span>, <span class="comment"># 未識別代理時使用默認代理</span></span><br><span class="line">  MAX_MESSAGE_PAIRS_PER_AGENT=<span class="number">10</span>      <span class="comment"># 每個代理的最大消息對數</span></span><br><span class="line">))</span><br></pre></td></tr></table></figure>
+
+<h3 id="初始化代理"><a href="#初始化代理" class="headerlink" title="初始化代理"></a>初始化代理</h3><p>這裡依照需求建立所需的代理，目前這裡以初始化技術代理 (<code>Tech Agent</code>) 和健康代理 (<code>Health Agent</code>)作為範例。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始化技術代理 (Tech Agent)</span></span><br><span class="line">tech_agent = BedrockLLMAgent(BedrockLLMAgentOptions(</span><br><span class="line">  name=<span class="string">&quot;Tech Agent&quot;</span>,</span><br><span class="line">  description=<span class="string">&quot;Specializes in technology areas including software development, hardware, AI, \</span></span><br><span class="line"><span class="string">  cybersecurity, blockchain, cloud computing, emerging tech innovations, and pricing/costs \</span></span><br><span class="line"><span class="string">  related to technology products and services.&quot;</span>,</span><br><span class="line">))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化健康代理 (Health Agent)</span></span><br><span class="line">health_agent = BedrockLLMAgent(BedrockLLMAgentOptions(</span><br><span class="line">  name=<span class="string">&quot;Health Agent&quot;</span>,</span><br><span class="line">  description=<span class="string">&quot;Focuses on health and medical topics such as general wellness, nutrition, diseases, treatments, mental health, fitness, healthcare systems, and medical terminology or concepts.&quot;</span>,</span><br><span class="line">))</span><br></pre></td></tr></table></figure>
+
+<h3 id="初始化-SupervisorAgent"><a href="#初始化-SupervisorAgent" class="headerlink" title="初始化 SupervisorAgent"></a>初始化 SupervisorAgent</h3><p>這裡創建了一個 <code>SupervisorAgent</code>，是用來作為協調技術代理和健康代理的管理者代理，並將它們添加到 Orchestrator以供分類器使用。</p>
+<p>備註：如果需要同時讓分類器選擇多筆agent，可以再加入其他agent進入Orchestrator。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始化管理者 (Supervisor Agent) </span></span><br><span class="line">supervisor = BedrockLLMAgent(BedrockLLMAgentOptions(</span><br><span class="line">    name=<span class="string">&quot;Team Lead&quot;</span>,</span><br><span class="line">    streaming=<span class="literal">True</span>,</span><br><span class="line">    description=<span class="string">&quot;Coordinates specialized team members&quot;</span></span><br><span class="line">))</span><br><span class="line"></span><br><span class="line"><span class="comment"># Create and add supervisor agent</span></span><br><span class="line">supervisor_agent = SupervisorAgent(SupervisorAgentOptions(</span><br><span class="line">    lead_agent=supervisor,</span><br><span class="line">    team=[tech_agent, health_agent],</span><br><span class="line">    trace=<span class="literal">True</span></span><br><span class="line">))</span><br><span class="line">orchestrator.add_agent(supervisor_agent)</span><br></pre></td></tr></table></figure>
+
+<h3 id="處理用戶請求"><a href="#處理用戶請求" class="headerlink" title="處理用戶請求"></a>處理用戶請求</h3><p>定義一個異步函數 <code>handle_request</code> 用來處理用戶請求，並使用 Orchestrator 進行路由。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 處理用戶請求的異步函數</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">handle_request</span>(<span class="params">_orchestrator: MultiAgentOrchestrator, _user_input: <span class="built_in">str</span>, _user_id: <span class="built_in">str</span>, _session_id: <span class="built_in">str</span></span>):</span><br><span class="line">    response: AgentResponse = <span class="keyword">await</span> _orchestrator.route_request(_user_input, _user_id, _session_id)</span><br><span class="line">    <span class="comment"># 顯示元數據</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;\nMetadata:&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Selected Agent: <span class="subst">&#123;response.metadata.agent_name&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> response.streaming:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;Response:&#x27;</span>, response.output.content[<span class="number">0</span>][<span class="string">&#x27;text&#x27;</span>])</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&#x27;Response:&#x27;</span>, response.output.content[<span class="number">0</span>][<span class="string">&#x27;text&#x27;</span>])</span><br></pre></td></tr></table></figure>
+
+<h3 id="主函數"><a href="#主函數" class="headerlink" title="主函數"></a>主函數</h3><p>最後，我們的主函數允許用戶輸入請求，並調用 <code>handle_request</code> 來處理這些請求。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    USER_ID = <span class="string">&quot;user123&quot;</span></span><br><span class="line">    SESSION_ID = <span class="built_in">str</span>(uuid.uuid4())</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Welcome to the interactive Multi-Agent system. Type &#x27;quit&#x27; to exit.&quot;</span>)</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="comment"># 獲取用戶輸入</span></span><br><span class="line">        user_input = <span class="built_in">input</span>(<span class="string">&quot;\nYou: &quot;</span>).strip()</span><br><span class="line">        <span class="keyword">if</span> user_input.lower() == <span class="string">&#x27;quit&#x27;</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;Exiting the program. Goodbye!&quot;</span>)</span><br><span class="line">            sys.exit()</span><br><span class="line">        <span class="comment"># 執行異步函數</span></span><br><span class="line">        asyncio.run(handle_request(orchestrator, user_input, USER_ID, SESSION_ID))</span><br></pre></td></tr></table></figure>
+
+<h3 id="程式運行流程"><a href="#程式運行流程" class="headerlink" title="程式運行流程"></a>程式運行流程</h3><ol>
+<li>用戶輸入問題。</li>
+<li><code>handle_request</code> 函數調用 Orchestrator 來路由請求。</li>
+<li><code>SupervisorAgent</code> 協調 <code>Tech Agent</code> 和 <code>Health Agent</code> 同時處理請求。</li>
+<li>系統輸出合併的回應結果。</li>
 </ol>
-</li>
-</ul>
-<h3 id="2-檢索增強生成（RAG）的使用"><a href="#2-檢索增強生成（RAG）的使用" class="headerlink" title="2. 檢索增強生成（RAG）的使用"></a>2. 檢索增強生成（RAG）的使用</h3><ul>
-<li>RAG通過從語料庫中檢索相關段落並將這些段落與原始問題一起輸送給LM來回答問題。</li>
-<li>初期方法依賴於專門的LMs進行檢索增強語言建模，但最近的研究表明，僅將檢索到的文檔添加到標準LM的輸入中也能達到良好效果，這使得在僅通過API獲取的LLMs中也能使用檢索增強策略。</li>
-</ul>
-<h3 id="3-RAG系統實施的挑戰"><a href="#3-RAG系統實施的挑戰" class="headerlink" title="3. RAG系統實施的挑戰"></a>3. RAG系統實施的挑戰</h3><ul>
-<li>RAG策略的有效性已經顯而易見，但其實施需要大量調整，因為整體性能會受到檢索模型、考慮的語料庫、LM和提示格式等多方面的影響。</li>
-<li>自動化評估RAG系統至關重要，傳統上，RAG系統常通過語言建模任務本身（例如測量參考語料上的困惑度）來評估，但這些評估不能預測結果的效果。</li>
-</ul>
-<h3 id="4-RAGAS框架的引入"><a href="#4-RAGAS框架的引入" class="headerlink" title="4. RAGAS框架的引入"></a>4. RAGAS框架的引入</h3><ul>
-<li>RAGAS是一個自動評估檢索增強生成系統的框架，專注於無需參考答案的設置，並估算正確性和檢索段落的有用性等不同代理指標。</li>
-<li>RAGAS與llamaindex和Langchain集成，這兩者是構建RAG解決方案中最廣泛使用的框架，使得開發者能夠輕鬆將RAGAS整合到他們的標準工作流程中。</li>
-</ul>
-<h2 id="評估策略"><a href="#評估策略" class="headerlink" title="評估策略"></a>評估策略</h2><h3 id="1-RAGAS設置"><a href="#1-RAGAS設置" class="headerlink" title="1. RAGAS設置"></a>1. RAGAS設置</h3><ul>
-<li><p>問題 ( q ) 給出後，系統首先檢索相關上下文 ( c(q) )，然後使用檢索到的上下文生成答案 ( as(q) )。<br>  <img  
-                       lazyload
-                       alt="image"
-                       data-src="https://i.imgur.com/P0xFFr1.png"
-                        alt="RAG Setting for RAGAS"
-                 ><br>  RAG Setting for RAGAS</p>
-</li>
-<li><p>問題建立</p>
-</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">data_samples = &#123;</span><br><span class="line">    <span class="string">&#x27;question&#x27;</span>: [<span class="string">&#x27;When was the first super bowl?&#x27;</span>, <span class="string">&#x27;Who won the most super bowls?&#x27;</span>],</span><br><span class="line">    <span class="string">&#x27;answer&#x27;</span>: [<span class="string">&#x27;The first superbowl was held on Jan 15, 1967&#x27;</span>, <span class="string">&#x27;The most super bowls have been won by The New England Patriots&#x27;</span>],</span><br><span class="line">    <span class="string">&#x27;contexts&#x27;</span> : [[<span class="string">&#x27;The First AFL–NFL World Championship Game was an American football game played on January 15, 1967, at the Los Angeles Memorial Coliseum in Los Angeles,&#x27;</span>],</span><br><span class="line">    [<span class="string">&#x27;The Green Bay Packers...Green Bay, Wisconsin.&#x27;</span>,<span class="string">&#x27;The Packers compete...Football Conference&#x27;</span>]],</span><br><span class="line">&#125;</span><br><span class="line">custom_dataset = Dataset.from_dict(data_samples)</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>透過langchain導入模型，我是使用azure建立語言模型，各位可以依照自己的需求建立</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> AzureChatOpenAI</span><br><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> AzureOpenAIEmbeddings</span><br><span class="line"><span class="keyword">from</span> ragas.llms <span class="keyword">import</span> LangchainLLMWrapper</span><br><span class="line"><span class="keyword">from</span> ragas <span class="keyword">import</span> evaluate</span><br><span class="line"></span><br><span class="line">azure_model = AzureChatOpenAI(</span><br><span class="line">    azure_deployment=<span class="string">&quot;gpt4o&quot;</span>,</span><br><span class="line">    azure_endpoint = RESOURCE_ENDPOINT,</span><br><span class="line">    openai_api_type=<span class="string">&quot;azure&quot;</span>,</span><br><span class="line">    openai_api_key = API_KEY,</span><br><span class="line">    api_version=<span class="string">&quot;2024-02-15-preview&quot;</span>,</span><br><span class="line">     max_tokens=<span class="number">2048</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">ragas_azure_model = LangchainLLMWrapper(azure_model)</span><br><span class="line"></span><br><span class="line">azure_embeddings = AzureOpenAIEmbeddings(</span><br><span class="line">    deployment=<span class="string">&quot;text-embedding-ada-002&quot;</span>,</span><br><span class="line">    model=<span class="string">&quot;text-embedding-ada-002&quot;</span>,</span><br><span class="line">    azure_endpoint = RESOURCE_ENDPOINT,</span><br><span class="line">    openai_api_type=<span class="string">&quot;azure&quot;</span>,</span><br><span class="line">    openai_api_key = API_KEY,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-範例指標"><a href="#2-範例指標" class="headerlink" title="2. 範例指標"></a>2. 範例指標</h3><ul>
-<li><strong>真實性</strong>（Faithfulness）：答案應該以給定上下文為基礎，避免幻覺，確保檢索到的上下文能作為生成答案的依據。</li>
-<li><strong>答案相關性</strong>（Answer Relevance）：生成的答案應該直接回應給定的問題。</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Patch Metrics with Azure Model</span></span><br><span class="line"><span class="keyword">from</span> ragas.metrics <span class="keyword">import</span> (faithfulness, answer_relevancy)</span><br><span class="line"></span><br><span class="line">metrics = [faithfulness, answer_relevancy]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Evaluate</span></span><br><span class="line">result = evaluate(</span><br><span class="line">    custom_dataset, metrics=metrics, llm=ragas_azure_model, embeddings=azure_embeddings</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">df = result.to_pandas()</span><br><span class="line"><span class="built_in">print</span>(df)</span><br></pre></td></tr></table></figure>
-
-<h2 id="評估工具"><a href="#評估工具" class="headerlink" title="評估工具"></a>評估工具</h2><h3 id="1-真實性測量-Faithfulness-Score"><a href="#1-真實性測量-Faithfulness-Score" class="headerlink" title="1. 真實性測量(Faithfulness Score)"></a>1. 真實性測量(Faithfulness Score)</h3><ul>
-<li><p>用於衡量產生答案和contexts對比的事實準確度。是指答案中的聲明是否可以從上下文中推斷出來。    </p>
-</li>
-<li><p>|V| &#x3D; LLM 支援的語句數量，|S| &#x3D; 語句總數。</p>
-<p>  範例<br>  <img  
-                       lazyload
-                       alt="image"
-                       data-src="https://i.imgur.com/800KHhy.png"
-                        alt="Faithfulness Score"
-                 ></p>
-</li>
-</ul>
-<h3 id="2-答案相關性測量-Answer-Relevance-Score"><a href="#2-答案相關性測量-Answer-Relevance-Score" class="headerlink" title="2. 答案相關性測量(Answer Relevance Score)"></a>2. 答案相關性測量(Answer Relevance Score)</h3><ul>
-<li><p>評估產生答案與問題的關聯程度。    </p>
-</li>
-<li><p>使用text-embedding-ada-002模型獲取所有問題的嵌入，並計算原始問題 ( q ) 與生成問題 ( qi ) 的相似度 ( sim(q, qi) ) 。</p>
-</li>
-<li><p>該指標評估生成答案與最初問題或指令的對齊程度。</p>
-<p>  範例<br>  <img  
-                       lazyload
-                       alt="image"
-                       data-src="https://i.imgur.com/1fWPQLJ.png"
-                        alt="Answer Relevance Score"
-                 ></p>
-</li>
-</ul>
-<h2 id="重點整理"><a href="#重點整理" class="headerlink" title="重點整理"></a>重點整理</h2><h3 id="1-自動化無參考資料評估"><a href="#1-自動化無參考資料評估" class="headerlink" title="1. 自動化無參考資料評估"></a>1. 自動化無參考資料評估</h3><ul>
-<li>主要的目的是建立一個自動化且無需參考資料的RAG系統評估。</li>
-</ul>
-<h3 id="2-RAGAS框架"><a href="#2-RAGAS框架" class="headerlink" title="2. RAGAS框架"></a>2. RAGAS框架</h3><ul>
-<li>描述了RAGAS框架及其實施。</li>
-<li>該框架易於使用，即使在沒有任何真實數據的情況下，也能為RAG系統開發者提供有價值的見解。</li>
-</ul>
-<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://arxiv.org/abs/2309.15217" >https://arxiv.org/abs/2309.15217<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://docs.ragas.io/en/latest/concepts/metrics/index.html" >https://docs.ragas.io/en/latest/concepts/metrics/index.html<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://baoyu.io/translations/rag/evaluating-rag-applications-with-ragas" >https://baoyu.io/translations/rag/evaluating-rag-applications-with-ragas<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://bajpaihimanshu.medium.com/papermadeeasy-ragas-automated-evaluation-of-retrieval-augmented-generation-ccfe5ea50db0" >https://bajpaihimanshu.medium.com/papermadeeasy-ragas-automated-evaluation-of-retrieval-augmented-generation-ccfe5ea50db0<i class="fas fa-external-link-alt"></i></a></p>
-<p><a class="link"   target="_blank" rel="noopener" href="https://idataagent.com/2024/05/27/mastering-rag-assessment-skills-from-beginner-to-expert/" >https://idataagent.com/2024/05/27/mastering-rag-assessment-skills-from-beginner-to-expert/<i class="fas fa-external-link-alt"></i></a></p>
+<p>這個設計能夠同時處理一個問句中包含的多個領域的問題。</p>
 
                     
                 </div>
@@ -395,15 +335,15 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/RAG/">RAG</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
                                         <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/LLM/">LLM</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
                                         <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/python/">python</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/AWS/">AWS</a>
                                     </li>
                                 
                             </ul>
@@ -419,31 +359,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/exclude-null-values-with-jsonserializeroptions/"
-                                   title="透過JsonSerializerOptions排除回傳 null 值的方法"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">透過JsonSerializerOptions排除回傳 null 值的方法</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/hexo-common-commands-summary/"
-                                   title="Hexo 常用指令整理"
+                                   href="/blog/how-to-create-gpt-function-call/"
+                                   title="如何建立 GPT Function Call"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">Hexo 常用指令整理</span>
+                                        <span class="post-nav-title-item text-ellipsis">如何建立 GPT Function Call</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -572,7 +496,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AA%9E%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%9F%A5%E8%AD%98%E5%BA%AB%E8%A7%92%E8%89%B2%E8%88%87%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">1. 語言模型的知識庫角色與局限性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%AA%A2%E7%B4%A2%E5%A2%9E%E5%BC%B7%E7%94%9F%E6%88%90%EF%BC%88RAG%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">2. 檢索增強生成（RAG）的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-RAG%E7%B3%BB%E7%B5%B1%E5%AF%A6%E6%96%BD%E7%9A%84%E6%8C%91%E6%88%B0"><span class="nav-text">3. RAG系統實施的挑戰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RAGAS%E6%A1%86%E6%9E%B6%E7%9A%84%E5%BC%95%E5%85%A5"><span class="nav-text">4. RAGAS框架的引入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E7%AD%96%E7%95%A5"><span class="nav-text">評估策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-RAGAS%E8%A8%AD%E7%BD%AE"><span class="nav-text">1. RAGAS設置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AF%84%E4%BE%8B%E6%8C%87%E6%A8%99"><span class="nav-text">2. 範例指標</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E5%B7%A5%E5%85%B7"><span class="nav-text">評估工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%9C%9F%E5%AF%A6%E6%80%A7%E6%B8%AC%E9%87%8F-Faithfulness-Score"><span class="nav-text">1. 真實性測量(Faithfulness Score)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AD%94%E6%A1%88%E7%9B%B8%E9%97%9C%E6%80%A7%E6%B8%AC%E9%87%8F-Answer-Relevance-Score"><span class="nav-text">2. 答案相關性測量(Answer Relevance Score)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E9%BB%9E%E6%95%B4%E7%90%86"><span class="nav-text">重點整理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%87%AA%E5%8B%95%E5%8C%96%E7%84%A1%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99%E8%A9%95%E4%BC%B0"><span class="nav-text">1. 自動化無參考資料評估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-RAGAS%E6%A1%86%E6%9E%B6"><span class="nav-text">2. RAGAS框架</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99"><span class="nav-text">參考資料</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%8B%E4%BD%9C%E9%82%8F%E8%BC%AF"><span class="nav-text">運作邏輯</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-Orchestrator"><span class="nav-text">初始化 Orchestrator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%BB%A3%E7%90%86"><span class="nav-text">初始化代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-SupervisorAgent"><span class="nav-text">初始化 SupervisorAgent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%95%E7%90%86%E7%94%A8%E6%88%B6%E8%AB%8B%E6%B1%82"><span class="nav-text">處理用戶請求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E5%87%BD%E6%95%B8"><span class="nav-text">主函數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BC%8F%E9%81%8B%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-text">程式運行流程</span></a></li></ol></li></ol>
     </div>
 </div>
 
@@ -755,7 +679,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AA%9E%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%9F%A5%E8%AD%98%E5%BA%AB%E8%A7%92%E8%89%B2%E8%88%87%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">1. 語言模型的知識庫角色與局限性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%AA%A2%E7%B4%A2%E5%A2%9E%E5%BC%B7%E7%94%9F%E6%88%90%EF%BC%88RAG%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">2. 檢索增強生成（RAG）的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-RAG%E7%B3%BB%E7%B5%B1%E5%AF%A6%E6%96%BD%E7%9A%84%E6%8C%91%E6%88%B0"><span class="nav-text">3. RAG系統實施的挑戰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RAGAS%E6%A1%86%E6%9E%B6%E7%9A%84%E5%BC%95%E5%85%A5"><span class="nav-text">4. RAGAS框架的引入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E7%AD%96%E7%95%A5"><span class="nav-text">評估策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-RAGAS%E8%A8%AD%E7%BD%AE"><span class="nav-text">1. RAGAS設置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AF%84%E4%BE%8B%E6%8C%87%E6%A8%99"><span class="nav-text">2. 範例指標</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E5%B7%A5%E5%85%B7"><span class="nav-text">評估工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%9C%9F%E5%AF%A6%E6%80%A7%E6%B8%AC%E9%87%8F-Faithfulness-Score"><span class="nav-text">1. 真實性測量(Faithfulness Score)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AD%94%E6%A1%88%E7%9B%B8%E9%97%9C%E6%80%A7%E6%B8%AC%E9%87%8F-Answer-Relevance-Score"><span class="nav-text">2. 答案相關性測量(Answer Relevance Score)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E9%BB%9E%E6%95%B4%E7%90%86"><span class="nav-text">重點整理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%87%AA%E5%8B%95%E5%8C%96%E7%84%A1%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99%E8%A9%95%E4%BC%B0"><span class="nav-text">1. 自動化無參考資料評估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-RAGAS%E6%A1%86%E6%9E%B6"><span class="nav-text">2. RAGAS框架</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99"><span class="nav-text">參考資料</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%8B%E4%BD%9C%E9%82%8F%E8%BC%AF"><span class="nav-text">運作邏輯</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-Orchestrator"><span class="nav-text">初始化 Orchestrator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%BB%A3%E7%90%86"><span class="nav-text">初始化代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-SupervisorAgent"><span class="nav-text">初始化 SupervisorAgent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%95%E7%90%86%E7%94%A8%E6%88%B6%E8%AB%8B%E6%B1%82"><span class="nav-text">處理用戶請求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E5%87%BD%E6%95%B8"><span class="nav-text">主函數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BC%8F%E9%81%8B%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-text">程式運行流程</span></a></li></ol></li></ol>
     </div>
 </div>
 
