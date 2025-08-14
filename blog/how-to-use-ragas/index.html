@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="Cloudy">
+    
+    <title>
+        
+            怎麼使用RAGAS？ |
+        
+        Cloudy&#39;s blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+        <link rel="shortcut icon" href="/images/cloud.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/regular.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/brands.min.css">
+    
+        
+            
+                
+<link rel="stylesheet" href="/css/custom-1.css">
+
+            
+        
+    
+    <script class="keep-theme-configurations">
+    const KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"cloudy-blog.netlify.app","root":"/","language":"en","path":"search.json"}
+    KEEP.theme_config = {"base_info":{"primary_color":"#0066cc","title":"Cloudy's blog","author":"Cloudy","avatar":"/images/cloud.png","logo":"/images/cloud.png","favicon":"/images/cloud.png","mode":"light"},"menu":{"home":"/","archives":"/archives","tags":"/tags","about":"/about"},"first_screen":{"enable":false,"background_img":"/images/bg.svg","background_img_dark":"/images/bg.svg","description":"Keep writing and Keep loving.","hitokoto":false},"social_contact":{"enable":false,"links":{"github":null,"weixin":null,"qq":null,"weibo":null,"zhihu":null,"twitter":null,"x":null,"facebook":null,"email":null}},"scroll":{"progress_bar":false,"percent":true,"hide_header":true},"home":{"announcement":null,"category":true,"tag":true,"post_datetime":"updated"},"post":{"author_badge":{"enable":false,"level_badge":false,"custom_badge":["One","Two","Three"]},"word_count":{"wordcount":false,"min2read":false},"datetime_format":"YYYY-MM-DD HH:mm:ss","copyright_info":false,"share":false,"reward":{"enable":false,"img_link":null,"text":null}},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"obsidian"},"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true,"layout":"right"},"website_count":{"busuanzi_count":{"enable":true,"site_uv":true,"site_pv":true,"page_pv":true}},"local_search":{"enable":true,"preload":true},"comment":{"enable":true,"use":"giscus","valine":{"appid":null,"appkey":null,"server_urls":null,"placeholder":null},"gitalk":{"github_id":"chui359","github_admins":["chui359"],"repository":"gitalkMessage","client_id":"Ov23li2tEuYzh1o767qp","client_secret":"7176bd8821972c84fa6a6ea65fd4d71d345d4a8a","proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.36"},"waline":{"server_url":null,"reaction":false,"version":"3.2.1"},"giscus":{"repo":"chui359/gitalkMessage","repo_id":"R_kgDOMkQ00w","category":"Announcements","category_id":"DIC_kwDOMkQ0084Chter","reactions_enabled":true},"artalk":{"server":null},"disqus":{"shortname":null}},"rss":{"enable":false},"lazyload":{"enable":true},"cdn":{"enable":true,"provider":"cdnjs"},"pjax":{"enable":true},"footer":{"since":2024,"word_count":false,"site_deploy":{"enable":false,"provider":"github","url":null},"record":{"enable":false,"list":[{"code":null,"link":null}]}},"inject":{"enable":true,"css":[["/css/custom-1.css"]],"js":[null]},"root":"","source_data":{},"version":"4.2.5"}
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"}
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"}
+    KEEP.language_copy_copyright = {"copy":"Copy copyright info","copied":"Copied","title":"Original post title","author":"Original post author","link":"Original post link"}
+  </script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+
+<main class="page-container border-box">
+    <!-- home first screen  -->
+    
+
+    <!-- page content -->
+    <div class="page-main-content border-box">
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="border-box header-content">
+        <div class="left flex-start border-box">
+            
+                <a class="logo-image border-box" href="/">
+                    <img src="/images/cloud.png">
+                </a>
+            
+            <a class="site-name border-box" href="/">
+               Cloudy&#39;s blog
+            </a>
+        </div>
+
+        <div class="right border-box">
+            <div class="pc border-box">
+                <ul class="menu-list border-box">
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/">
+                                
+                                HOME
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/archives">
+                                
+                                ARCHIVES
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/tags">
+                                
+                                TAGS
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/about">
+                                
+                                ABOUT
+                                
+                            </a>
+                            
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="menu-text-color fas search fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile border-box flex-start">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list border-box">
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/">
+                            
+                            HOME
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/archives">
+                            
+                            ARCHIVES
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/tags">
+                            
+                            TAGS
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/about">
+                            
+                            ABOUT
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle border-box">
+
+            <div class="main-content border-box">
+                
+
+                    
+<div class="fade-in-down-animation">
+    <div class="post-page-container border-box">
+        <div class="post-content-container border-box">
+            
+
+            <div class="post-content-bottom border-box">
+                
+                    <div class="post-title">
+                        怎麼使用RAGAS？
+                    </div>
+                
+
+                
+                    <div class="post-header border-box">
+                        
+                            <div class="avatar-box border-box">
+                                <img src="/images/cloud.png">
+                            </div>
+                        
+                        <div class="info-box">
+                            <div class="author border-box">
+                                <span class="name">Cloudy</span>
+                                
+                            </div>
+                            <div class="meta-info border-box">
+                                
+
+<div class="post-meta-info-container border-box post">
+    <div class="post-meta-info border-box">
+        
+
+        
+            <span class="meta-info-item post-create-date">
+                <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
+                <span class="datetime">2024-08-19 16:47:46</span>
+            </span>
+
+            
+                <span class="meta-info-item post-update-date">
+                    <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                    <span class="datetime" data-updated="Thu Aug 14 2025 09:26:58 GMT+0800">2025-08-14 09:26:58</span>
+                </span>
+            
+        
+
+        
+            <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
+                <ul class="post-category-ul">
+                    
+                            <li class="category-item"><a href="/categories/AI/">AI</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+            <span class="post-tag meta-info-item border-box">
+                <ul class="post-tag-ul">
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/LLM/">LLM</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/python/">python</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/RAG/">RAG</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+        
+        
+            <span class="meta-info-item post-pv">
+                <i class="icon fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+            </span>
+        
+    </div>
+
+    
+</div>
+
+                            </div>
+                        </div>
+                    </div>
+                
+
+                <div class="post-content keep-markdown-body ">
+                    
+
+                    
+                         <p>因為工作需求需要研究一下RAGAS，但是發現中文相關的資訊並不多，所以我主要參考了官方的文件，建立了一個簡單的python實作，並透過這個實作稍微簡單的介紹一下RAGAS是什麼。</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一般來說，對於RAG系統的評估通常會依賴於人工標註的真實數據，但這種方法耗時且成本高。為了應對這個狀況，出現 RAGAS（Retrieval Augmented Generation Assessment），這是一種不需要依賴人工標註的評估框架。RAGAS提供了一套衡量指標，可以用來評估RAG系統中的不同維度，從而實現更快速的評估循環。</p>
+<h3 id="1-語言模型的知識庫角色與局限性"><a href="#1-語言模型的知識庫角色與局限性" class="headerlink" title="1. 語言模型的知識庫角色與局限性"></a>1. 語言模型的知識庫角色與局限性</h3><ul>
+<li>語言模型（LMs）能夠捕捉大量世界知識，回答問題無需訪問外部來源。</li>
+<li>大型語言模型（LLMs）在各種問題回答基準上表現出與人類相當的能力，但仍存在兩個基本限制：<ol>
+<li>無法回答訓練之後發生的資訊。</li>
+<li>難以使用訓練資料中很少提及的知識。</li>
+</ol>
+</li>
+</ul>
+<h3 id="2-檢索增強生成（RAG）的使用"><a href="#2-檢索增強生成（RAG）的使用" class="headerlink" title="2. 檢索增強生成（RAG）的使用"></a>2. 檢索增強生成（RAG）的使用</h3><ul>
+<li>RAG通過從語料庫中檢索相關段落並將這些段落與原始問題一起輸送給LM來回答問題。</li>
+<li>初期方法依賴於專門的LMs進行檢索增強語言建模，但最近的研究表明，僅將檢索到的文檔添加到標準LM的輸入中也能達到良好效果，這使得在僅通過API獲取的LLMs中也能使用檢索增強策略。</li>
+</ul>
+<h3 id="3-RAG系統實施的挑戰"><a href="#3-RAG系統實施的挑戰" class="headerlink" title="3. RAG系統實施的挑戰"></a>3. RAG系統實施的挑戰</h3><ul>
+<li>RAG策略的有效性已經顯而易見，但其實施需要大量調整，因為整體性能會受到檢索模型、考慮的語料庫、LM和提示格式等多方面的影響。</li>
+<li>自動化評估RAG系統至關重要，傳統上，RAG系統常通過語言建模任務本身（例如測量參考語料上的困惑度）來評估，但這些評估不能預測結果的效果。</li>
+</ul>
+<h3 id="4-RAGAS框架的引入"><a href="#4-RAGAS框架的引入" class="headerlink" title="4. RAGAS框架的引入"></a>4. RAGAS框架的引入</h3><ul>
+<li>RAGAS是一個自動評估檢索增強生成系統的框架，專注於無需參考答案的設置，並估算正確性和檢索段落的有用性等不同代理指標。</li>
+<li>RAGAS與llamaindex和Langchain集成，這兩者是構建RAG解決方案中最廣泛使用的框架，使得開發者能夠輕鬆將RAGAS整合到他們的標準工作流程中。</li>
+</ul>
+<h2 id="評估策略"><a href="#評估策略" class="headerlink" title="評估策略"></a>評估策略</h2><h3 id="1-RAGAS設置"><a href="#1-RAGAS設置" class="headerlink" title="1. RAGAS設置"></a>1. RAGAS設置</h3><ul>
+<li><p>問題 ( q ) 給出後，系統首先檢索相關上下文 ( c(q) )，然後使用檢索到的上下文生成答案 ( as(q) )。<br>  <img  
+                       lazyload
+                       alt="image"
+                       data-src="https://i.imgur.com/P0xFFr1.png"
+                        alt="RAG Setting for RAGAS"
+                 ><br>  RAG Setting for RAGAS</p>
+</li>
+<li><p>問題建立</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">data_samples = &#123;</span><br><span class="line">    <span class="string">&#x27;question&#x27;</span>: [<span class="string">&#x27;When was the first super bowl?&#x27;</span>, <span class="string">&#x27;Who won the most super bowls?&#x27;</span>],</span><br><span class="line">    <span class="string">&#x27;answer&#x27;</span>: [<span class="string">&#x27;The first superbowl was held on Jan 15, 1967&#x27;</span>, <span class="string">&#x27;The most super bowls have been won by The New England Patriots&#x27;</span>],</span><br><span class="line">    <span class="string">&#x27;contexts&#x27;</span> : [[<span class="string">&#x27;The First AFL–NFL World Championship Game was an American football game played on January 15, 1967, at the Los Angeles Memorial Coliseum in Los Angeles,&#x27;</span>],</span><br><span class="line">    [<span class="string">&#x27;The Green Bay Packers...Green Bay, Wisconsin.&#x27;</span>,<span class="string">&#x27;The Packers compete...Football Conference&#x27;</span>]],</span><br><span class="line">&#125;</span><br><span class="line">custom_dataset = Dataset.from_dict(data_samples)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>透過langchain導入模型，我是使用azure建立語言模型，各位可以依照自己的需求建立</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> AzureChatOpenAI</span><br><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> AzureOpenAIEmbeddings</span><br><span class="line"><span class="keyword">from</span> ragas.llms <span class="keyword">import</span> LangchainLLMWrapper</span><br><span class="line"><span class="keyword">from</span> ragas <span class="keyword">import</span> evaluate</span><br><span class="line"></span><br><span class="line">azure_model = AzureChatOpenAI(</span><br><span class="line">    azure_deployment=<span class="string">&quot;gpt4o&quot;</span>,</span><br><span class="line">    azure_endpoint = RESOURCE_ENDPOINT,</span><br><span class="line">    openai_api_type=<span class="string">&quot;azure&quot;</span>,</span><br><span class="line">    openai_api_key = API_KEY,</span><br><span class="line">    api_version=<span class="string">&quot;2024-02-15-preview&quot;</span>,</span><br><span class="line">     max_tokens=<span class="number">2048</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">ragas_azure_model = LangchainLLMWrapper(azure_model)</span><br><span class="line"></span><br><span class="line">azure_embeddings = AzureOpenAIEmbeddings(</span><br><span class="line">    deployment=<span class="string">&quot;text-embedding-ada-002&quot;</span>,</span><br><span class="line">    model=<span class="string">&quot;text-embedding-ada-002&quot;</span>,</span><br><span class="line">    azure_endpoint = RESOURCE_ENDPOINT,</span><br><span class="line">    openai_api_type=<span class="string">&quot;azure&quot;</span>,</span><br><span class="line">    openai_api_key = API_KEY,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-範例指標"><a href="#2-範例指標" class="headerlink" title="2. 範例指標"></a>2. 範例指標</h3><ul>
+<li><strong>真實性</strong>（Faithfulness）：答案應該以給定上下文為基礎，避免幻覺，確保檢索到的上下文能作為生成答案的依據。</li>
+<li><strong>答案相關性</strong>（Answer Relevance）：生成的答案應該直接回應給定的問題。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Patch Metrics with Azure Model</span></span><br><span class="line"><span class="keyword">from</span> ragas.metrics <span class="keyword">import</span> (faithfulness, answer_relevancy)</span><br><span class="line"></span><br><span class="line">metrics = [faithfulness, answer_relevancy]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Evaluate</span></span><br><span class="line">result = evaluate(</span><br><span class="line">    custom_dataset, metrics=metrics, llm=ragas_azure_model, embeddings=azure_embeddings</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">df = result.to_pandas()</span><br><span class="line"><span class="built_in">print</span>(df)</span><br></pre></td></tr></table></figure>
+
+<h2 id="評估工具"><a href="#評估工具" class="headerlink" title="評估工具"></a>評估工具</h2><h3 id="1-真實性測量-Faithfulness-Score"><a href="#1-真實性測量-Faithfulness-Score" class="headerlink" title="1. 真實性測量(Faithfulness Score)"></a>1. 真實性測量(Faithfulness Score)</h3><ul>
+<li><p>用於衡量產生答案和contexts對比的事實準確度。是指答案中的聲明是否可以從上下文中推斷出來。    </p>
+</li>
+<li><p>|V| &#x3D; LLM 支援的語句數量，|S| &#x3D; 語句總數。</p>
+<p>  範例<br>  <img  
+                       lazyload
+                       alt="image"
+                       data-src="https://i.imgur.com/800KHhy.png"
+                        alt="Faithfulness Score"
+                 ></p>
+</li>
+</ul>
+<h3 id="2-答案相關性測量-Answer-Relevance-Score"><a href="#2-答案相關性測量-Answer-Relevance-Score" class="headerlink" title="2. 答案相關性測量(Answer Relevance Score)"></a>2. 答案相關性測量(Answer Relevance Score)</h3><ul>
+<li><p>評估產生答案與問題的關聯程度。    </p>
+</li>
+<li><p>使用text-embedding-ada-002模型獲取所有問題的嵌入，並計算原始問題 ( q ) 與生成問題 ( qi ) 的相似度 ( sim(q, qi) ) 。</p>
+</li>
+<li><p>該指標評估生成答案與最初問題或指令的對齊程度。</p>
+<p>  範例<br>  <img  
+                       lazyload
+                       alt="image"
+                       data-src="https://i.imgur.com/1fWPQLJ.png"
+                        alt="Answer Relevance Score"
+                 ></p>
+</li>
+</ul>
+<h2 id="重點整理"><a href="#重點整理" class="headerlink" title="重點整理"></a>重點整理</h2><h3 id="1-自動化無參考資料評估"><a href="#1-自動化無參考資料評估" class="headerlink" title="1. 自動化無參考資料評估"></a>1. 自動化無參考資料評估</h3><ul>
+<li>主要的目的是建立一個自動化且無需參考資料的RAG系統評估。</li>
+</ul>
+<h3 id="2-RAGAS框架"><a href="#2-RAGAS框架" class="headerlink" title="2. RAGAS框架"></a>2. RAGAS框架</h3><ul>
+<li>描述了RAGAS框架及其實施。</li>
+<li>該框架易於使用，即使在沒有任何真實數據的情況下，也能為RAG系統開發者提供有價值的見解。</li>
+</ul>
+<h2 id="參考資料"><a href="#參考資料" class="headerlink" title="參考資料"></a>參考資料</h2><p><a class="link"   target="_blank" rel="noopener" href="https://arxiv.org/abs/2309.15217" >https://arxiv.org/abs/2309.15217<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://docs.ragas.io/en/latest/concepts/metrics/index.html" >https://docs.ragas.io/en/latest/concepts/metrics/index.html<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://baoyu.io/translations/rag/evaluating-rag-applications-with-ragas" >https://baoyu.io/translations/rag/evaluating-rag-applications-with-ragas<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://bajpaihimanshu.medium.com/papermadeeasy-ragas-automated-evaluation-of-retrieval-augmented-generation-ccfe5ea50db0" >https://bajpaihimanshu.medium.com/papermadeeasy-ragas-automated-evaluation-of-retrieval-augmented-generation-ccfe5ea50db0<i class="fas fa-external-link-alt"></i></a></p>
+<p><a class="link"   target="_blank" rel="noopener" href="https://idataagent.com/2024/05/27/mastering-rag-assessment-skills-from-beginner-to-expert/" >https://idataagent.com/2024/05/27/mastering-rag-assessment-skills-from-beginner-to-expert/<i class="fas fa-external-link-alt"></i></a></p>
+
+                    
+                </div>
+
+                
+
+                <div class="post-bottom-tags-and-share border-box">
+                    <div>
+                        
+                            <ul class="post-tags-box border-box">
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/LLM/">LLM</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/python/">python</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/RAG/">RAG</a>
+                                    </li>
+                                
+                            </ul>
+                        
+                    </div>
+                    <div>
+                        
+                    </div>
+                </div>
+
+                
+
+                
+                    <div class="post-nav border-box">
+                        
+                            <div class="prev-post">
+                                <a class="prev"
+                                   rel="prev"
+                                   href="/blog/exclude-null-values-with-jsonserializeroptions/"
+                                   title="透過JsonSerializerOptions排除回傳 null 值的方法"
+                                >
+                                    <span class="left arrow-icon flex-center">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">透過JsonSerializerOptions排除回傳 null 值的方法</span>
+                                        <span class="post-nav-item">Prev posts</span>
+                                    </span>
+                                </a>
+                            </div>
+                        
+                        
+                            <div class="next-post">
+                                <a class="next"
+                                   rel="next"
+                                   href="/blog/hexo-common-commands-summary/"
+                                   title="Hexo 常用指令整理"
+                                >
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">Hexo 常用指令整理</span>
+                                        <span class="post-nav-item">Next posts</span>
+                                    </span>
+                                    <span class="right arrow-icon flex-center">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        
+                    </div>
+                
+
+                
+                    
+
+
+    <div class="comments-container border-box">
+        <div id="comments-anchor" class="comment-area-title border-box">
+            <i class="fas fa-comments"></i>&nbsp;Comments
+        </div>
+        <div class="comment-plugin-fail border-box">
+    <span class="fail-tip">Comment plugin failed to load</span>
+    <button class="reload keep-button">Click to reload</button>
+</div>
+<div class="comment-plugin-loading flex-center border-box">
+    <i class="loading-icon fa-solid fa-spinner fa-spin"></i>
+    <span class="load-tip">Loading comment plugin</span>
+</div>
+<script data-pjax>
+  window.KeepCommentPlugin = {}
+  window.KeepCommentPlugin.hideLoading = () => {
+    const cplDom = document.querySelector('.comments-container .comment-plugin-loading')
+    cplDom.style.display = 'none'
+  }
+  window.KeepCommentPlugin.loadFailHandle = () => {
+    window.KeepCommentPlugin.hideLoading()
+    const cpfDom = document.querySelector('.comments-container .comment-plugin-fail')
+    cpfDom.style.display = 'flex'
+    cpfDom.querySelector('.reload').addEventListener('click', () => {
+      window.location.reload()
+    })
+  }
+</script>
+
+        
+            
+
+    <div class="giscus-comments-container">
+        <div class="giscus" id="giscus"></div>
+        <script data-pjax
+                onerror="window.KeepCommentPlugin.loadFailHandle()"
+        >
+          if (!window.KeepCommentPlugin?.getGiscusTheme) {
+            window.KeepCommentPlugin.getGiscusTheme = () => {
+              return document.documentElement.classList.contains('dark-mode') ? 'dark_dimmed' : 'light_tritanopia'
+            }
+          }
+
+          if (!window.KeepCommentPlugin?.changeGiscusTheme) {
+            window.KeepCommentPlugin.changeGiscusTheme = () => {
+              const iframe = document.querySelector('iframe.giscus-frame')
+              iframe && iframe.contentWindow.postMessage({
+                giscus: {
+                  setConfig: {
+                    theme: window.KeepCommentPlugin.getGiscusTheme()
+                  }
+                }
+              }, 'https://giscus.app')
+            }
+          }
+
+          if (!window.KeepCommentPlugin?.initGiscus) {
+            window.KeepCommentPlugin.initGiscus = () => {
+              const script = document.createElement('script')
+              script.async = true
+              script.src = 'https://giscus.app/client.js'
+              script.setAttribute('data-repo', 'chui359/gitalkMessage')
+              script.setAttribute('data-repo-id', 'R_kgDOMkQ00w')
+              script.setAttribute('data-category', 'Announcements')
+              script.setAttribute('data-category-id', 'DIC_kwDOMkQ0084Chter')
+              script.setAttribute('data-reactions-enabled', '1')
+              script.setAttribute('data-lang', 'en')
+              script.setAttribute('data-mapping', 'pathname')
+              script.setAttribute('data-strict', '0')
+              script.setAttribute('data-emit-metadata', '0')
+              script.setAttribute('data-input-position', 'top')
+              script.setAttribute('crossorigin', 'anonymous')
+              script.setAttribute('loading', 'lazy')
+              script.setAttribute('data-theme', window.KeepCommentPlugin.getGiscusTheme())
+              document.querySelector('.giscus-comments-container').appendChild(script)
+              script.onerror = () => {
+                window.KeepCommentPlugin.loadFailHandle()
+              }
+              script.onload = () => {
+                window.KeepCommentPlugin.hideLoading()
+              }
+              const toggleThemeBtn = document.querySelector('.tool-toggle-theme-mode')
+              toggleThemeBtn && toggleThemeBtn.addEventListener('click', () => {
+                window.KeepCommentPlugin.changeGiscusTheme()
+              })
+            }
+          }
+
+          if ('true' === "true") {
+            setTimeout(() => {
+              window.KeepCommentPlugin.initGiscus()
+            }, 1000)
+          } else {
+            window.addEventListener("DOMContentLoaded", window.KeepCommentPlugin.initGiscus)
+          }
+        </script>
+    </div>
+
+
+        
+    </div>
+
+
+
+
+
+                
+            </div>
+        </div>
+
+        
+            <div class="pc-post-toc right-toc">
+                <div class="post-toc-wrap border-box">
+    <div class="post-toc border-box">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AA%9E%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%9F%A5%E8%AD%98%E5%BA%AB%E8%A7%92%E8%89%B2%E8%88%87%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">1. 語言模型的知識庫角色與局限性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%AA%A2%E7%B4%A2%E5%A2%9E%E5%BC%B7%E7%94%9F%E6%88%90%EF%BC%88RAG%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">2. 檢索增強生成（RAG）的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-RAG%E7%B3%BB%E7%B5%B1%E5%AF%A6%E6%96%BD%E7%9A%84%E6%8C%91%E6%88%B0"><span class="nav-text">3. RAG系統實施的挑戰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RAGAS%E6%A1%86%E6%9E%B6%E7%9A%84%E5%BC%95%E5%85%A5"><span class="nav-text">4. RAGAS框架的引入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E7%AD%96%E7%95%A5"><span class="nav-text">評估策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-RAGAS%E8%A8%AD%E7%BD%AE"><span class="nav-text">1. RAGAS設置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AF%84%E4%BE%8B%E6%8C%87%E6%A8%99"><span class="nav-text">2. 範例指標</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E5%B7%A5%E5%85%B7"><span class="nav-text">評估工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%9C%9F%E5%AF%A6%E6%80%A7%E6%B8%AC%E9%87%8F-Faithfulness-Score"><span class="nav-text">1. 真實性測量(Faithfulness Score)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AD%94%E6%A1%88%E7%9B%B8%E9%97%9C%E6%80%A7%E6%B8%AC%E9%87%8F-Answer-Relevance-Score"><span class="nav-text">2. 答案相關性測量(Answer Relevance Score)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E9%BB%9E%E6%95%B4%E7%90%86"><span class="nav-text">重點整理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%87%AA%E5%8B%95%E5%8C%96%E7%84%A1%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99%E8%A9%95%E4%BC%B0"><span class="nav-text">1. 自動化無參考資料評估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-RAGAS%E6%A1%86%E6%9E%B6"><span class="nav-text">2. RAGAS框架</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99"><span class="nav-text">參考資料</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+        </div>
+
+        <div class="page-main-content-bottom border-box">
+            
+<footer class="footer border-box">
+    <div class="copyright-info info-item">
+    &copy;&nbsp;<span>2024</span>&nbsp;-&nbsp;2025
+    
+            &nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;&nbsp;<a href="/">Cloudy</a>
+        
+    </div>
+
+    <div class="theme-info info-item">
+        Powered by&nbsp;<a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;&&nbsp;Theme&nbsp;<a class="keep-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep</a>
+    </div>
+
+    
+
+    
+        <div class="count-info info-item">
+            
+
+            
+                <span class="count-item border-box uv">
+                    <span class="item-type border-box">Unique Visitor</span>
+                    <span class="item-value border-box uv" id="busuanzi_value_site_uv"></span>
+                </span>
+            
+
+            
+                <span class="count-item border-box pv">
+                    <span class="item-type border-box">Page View</span>
+                    <span class="item-value border-box pv" id="busuanzi_value_site_pv"></span>
+                </span>
+            
+        </div>
+    
+
+    
+</footer>
+
+        </div>
+    </div>
+
+    <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="post-tools-list border-box">
+        <!-- PC encrypt again -->
+        
+
+        <!-- PC TOC show toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- PC go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+
+        <!-- PC full screen -->
+        <li class="tools-item flex-center full-screen">
+            <i class="fa-solid fa-expand"></i>
+        </li>
+    </ul>
+</div>
+
+        </div>
+    
+
+    <!-- side tools -->
+    <div class="side-tools">
+        <div class="side-tools-container border-box ">
+    <ul class="side-tools-list side-tools-show-handle border-box">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <!-- toggle mode -->
+        
+
+        <!-- rss -->
+        
+
+        <!-- to bottom -->
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list border-box">
+        
+            <li class="tools-item toggle-show-toc-tablet flex-center">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        
+            <li class="tools-item go-to-comments-tablet flex-center">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+
+        <li class="tools-item tool-scroll-to-top flex-center show-arrow">
+            <i class="arrow fas fa-arrow-up"></i>
+            <span class="percent"></span>
+        </li>
+    </ul>
+</div>
+
+    </div>
+
+    <!-- image mask -->
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    <!-- local search -->
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    <!-- tablet toc -->
+    
+        <div class="tablet-post-toc-mask">
+            <div class="tablet-post-toc">
+                <div class="post-toc-wrap border-box">
+    <div class="post-toc border-box">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AA%9E%E8%A8%80%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%9F%A5%E8%AD%98%E5%BA%AB%E8%A7%92%E8%89%B2%E8%88%87%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-text">1. 語言模型的知識庫角色與局限性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%AA%A2%E7%B4%A2%E5%A2%9E%E5%BC%B7%E7%94%9F%E6%88%90%EF%BC%88RAG%EF%BC%89%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">2. 檢索增強生成（RAG）的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-RAG%E7%B3%BB%E7%B5%B1%E5%AF%A6%E6%96%BD%E7%9A%84%E6%8C%91%E6%88%B0"><span class="nav-text">3. RAG系統實施的挑戰</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RAGAS%E6%A1%86%E6%9E%B6%E7%9A%84%E5%BC%95%E5%85%A5"><span class="nav-text">4. RAGAS框架的引入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E7%AD%96%E7%95%A5"><span class="nav-text">評估策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-RAGAS%E8%A8%AD%E7%BD%AE"><span class="nav-text">1. RAGAS設置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AF%84%E4%BE%8B%E6%8C%87%E6%A8%99"><span class="nav-text">2. 範例指標</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A9%95%E4%BC%B0%E5%B7%A5%E5%85%B7"><span class="nav-text">評估工具</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%9C%9F%E5%AF%A6%E6%80%A7%E6%B8%AC%E9%87%8F-Faithfulness-Score"><span class="nav-text">1. 真實性測量(Faithfulness Score)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%AD%94%E6%A1%88%E7%9B%B8%E9%97%9C%E6%80%A7%E6%B8%AC%E9%87%8F-Answer-Relevance-Score"><span class="nav-text">2. 答案相關性測量(Answer Relevance Score)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E9%BB%9E%E6%95%B4%E7%90%86"><span class="nav-text">重點整理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%87%AA%E5%8B%95%E5%8C%96%E7%84%A1%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99%E8%A9%95%E4%BC%B0"><span class="nav-text">1. 自動化無參考資料評估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-RAGAS%E6%A1%86%E6%9E%B6"><span class="nav-text">2. RAGAS框架</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E8%B3%87%E6%96%99"><span class="nav-text">參考資料</span></a></li></ol>
+    </div>
+</div>
+
+            </div>
+        </div>
+    
+</main>
+
+
+
+
+
+<!-- common js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/utils.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/header-shrink.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/back2top.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/toggle-theme.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/code-block.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/main.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/libs/anime.min.js"></script>
+
+<!-- local search -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/local-search.min.js"></script>
+
+
+<!-- lazyload -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/lazyload.min.js"></script>
+
+
+<div class="pjax">
+    <!-- home page -->
+    
+
+    <!-- post page -->
+    
+        <!-- post-helper -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/post/post-helper.min.js"></script>
+
+        <!-- toc -->
+        
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/post/toc.min.js"></script>
+        
+
+        <!-- copyright-info -->
+        
+
+        <!-- share -->
+        
+    
+
+    <!-- categories page -->
+    
+
+    <!-- links page -->
+    
+
+    <!-- photos page -->
+    
+
+    <!-- tools page -->
+    
+</div>
+
+<!-- mermaid -->
+
+
+<!-- pjax -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart()
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd()
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'))
+            KEEP.initExecute()
+        });
+    });
+</script>
+
+
+
+
+    
+        
+    
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+/* 注入 CSS 文件修改 CSS 变量使用示例 */
+
+:root {
+    /* 修改全局默认字体大小 */
+    /* --base-font-size: 16px; */
+ 
+   /* 隐藏文章内容页面作者头像 */
+   --post-author-avatar: none;
+
+   /* 隐藏文章内容页面作者名称 */
+   --post-author-name: none;
+}
