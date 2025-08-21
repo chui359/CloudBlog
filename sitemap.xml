@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://cloudy-blog.netlify.app/blog/cmel47ih200000clc26nu7kb7/</loc>
+    
+    <lastmod>2025-08-21</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://cloudy-blog.netlify.app/blog/cmearc1wz0000c0lcgij2fijp/</loc>
     
     <lastmod>2025-08-14</lastmod>
@@ -112,7 +121,7 @@
 
   <url>
     <loc>https://cloudy-blog.netlify.app/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -120,84 +129,119 @@
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/AWS/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/LLM/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/python/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/C/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/NET-Framework/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/Minimal-Api/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/RAG/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/Python/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/argparse/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/CLI/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/Hexo/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/pytest/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/Kubernetes/</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/EKS/</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/Helm/</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/Debug/</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/RabbitMQ/</loc>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -206,35 +250,49 @@
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/AI/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/C/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/Python/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/GPT-technology/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://cloudy-blog.netlify.app/categories/Hexo/</loc>
-    <lastmod>2025-08-14</lastmod>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/categories/DevOps/</loc>
+    <lastmod>2025-08-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/categories/DevOps/Kubernetes/</loc>
+    <lastmod>2025-08-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

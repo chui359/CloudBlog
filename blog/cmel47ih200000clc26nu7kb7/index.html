@@ -9,7 +9,7 @@
     
     <title>
         
-            在 pytest 使用假資料進行 API 測試 |
+            解決 Kubernetes Service 注入環境變數導致程式錯誤問題 |
         
         Cloudy&#39;s blog
     </title>
@@ -214,7 +214,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        在 pytest 使用假資料進行 API 測試
+                        解決 Kubernetes Service 注入環境變數導致程式錯誤問題
                     </div>
                 
 
@@ -240,13 +240,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-08-14 10:03:22</span>
+                <span class="datetime">2025-08-21 15:59:50</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Thu Aug 14 2025 10:07:34 GMT+0800">2025-08-14 10:07:34</span>
+                    <span class="datetime" data-updated="Thu Aug 21 2025 16:02:46 GMT+0800">2025-08-21 16:02:46</span>
                 </span>
             
         
@@ -255,7 +255,10 @@
             <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
                 <ul class="post-category-ul">
                     
-                            <li class="category-item"><a href="/categories/Python/">Python</a></li>
+                            <li class="category-item"><a href="/categories/DevOps/">DevOps</a></li>
+                        
+                    
+                            <li class="category-item">&nbsp;<i class="icon fas fa-angle-right"></i>&nbsp;<a href="/categories/DevOps/Kubernetes/">Kubernetes</a></li>
                         
                     
                 </ul>
@@ -266,10 +269,19 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Kubernetes/">Kubernetes</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/pytest/">pytest</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/EKS/">EKS</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Helm/">Helm</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Debug/">Debug</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/RabbitMQ/">RabbitMQ</a></li>
                         
                     
                 </ul>
@@ -298,53 +310,49 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本篇文章的背景是針對使用 <code>pytest</code> 進行 API 測試時，為什麼我們常常會使用「假資料（mock）」而不是直接呼叫後端。<br>動機是許多初學者在撰寫單元測試時，會直接打後端 API，結果導致測試不穩定、速度慢、容易出現不必要的錯誤。<br>主要目標是透過範例與解說，幫助讀者理解：</p>
-<ol>
-<li><code>pytest</code> 的用途與測試目的。</li>
-<li>為什麼要用假資料取代真實後端呼叫。</li>
-<li>如何用 <code>patch</code> 來控制測試結果，讓測試快速且穩定。</li>
-</ol>
-<h2 id="運作邏輯"><a href="#運作邏輯" class="headerlink" title="運作邏輯"></a>運作邏輯</h2><h3 id="測試初始化"><a href="#測試初始化" class="headerlink" title="測試初始化"></a>測試初始化</h3><p>在這個案例中，我們使用 <code>pytest</code> 搭配 <code>pytest-asyncio</code> 來測試一個 FastAPI API。<br>這個 API <code>/project</code> 會透過 <code>backend_api_projects</code> 去呼叫後端服務，我們會用 <code>unittest.mock.patch</code> 將它替換成假資料，避免真正連線後端。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">import pytest</span><br><span class="line">from unittest.mock import patch</span><br><span class="line"></span><br><span class="line">@pytest.mark.asyncio</span><br><span class="line">async def test\_list\_projects\_success(async\_client):</span><br><span class="line">mock\_response = &#123;</span><br><span class="line">&quot;result&quot;: \[</span><br><span class="line">&#123;&quot;projectId&quot;: 1, &quot;projectName&quot;: &quot;Test Project&quot;&#125;,</span><br><span class="line">&#123;&quot;projectId&quot;: 2, &quot;projectName&quot;: &quot;Another Project&quot;&#125;</span><br><span class="line">]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">with patch(&quot;app.services.project_service.backend_api_projects&quot;, return_value=mock_response):</span><br><span class="line">    response = await async_client.get(&quot;/project&quot;)</span><br><span class="line"></span><br><span class="line">assert response.status_code == 200</span><br><span class="line">data = response.json()</span><br><span class="line">assert data[&quot;status&quot;] == 200</span><br><span class="line">assert len(data[&quot;result&quot;][&quot;projectList&quot;]) == 2</span><br></pre></td></tr></table></figure>
-
-<h3 id="為什麼要用假資料（mock）"><a href="#為什麼要用假資料（mock）" class="headerlink" title="為什麼要用假資料（mock）"></a>為什麼要用假資料（mock）</h3><ol>
-<li><p><strong>專注測試自己的邏輯</strong><br>不受外部系統（後端、資料庫、網路）影響，測試失敗時能快速定位是自己程式的問題還是外部因素。</p>
-</li>
-<li><p><strong>資料一致性</strong><br>後端資料可能每天都變動，直接呼叫可能導致今天測試通過、明天失敗，假資料能保證每次測試的輸入一致。</p>
-</li>
-<li><p><strong>速度快</strong><br>呼叫真實後端可能需要數百毫秒甚至數秒，假資料幾乎是瞬間回傳。</p>
-</li>
-<li><p><strong>模擬錯誤情境</strong><br>很多情況（如後端回傳 500、回傳空清單）在真實系統中難以控制，mock 可以直接製造這些情境來測試。</p>
-</li>
-</ol>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 Kubernetes 上部署應用程式時，經常會利用 <strong>Service</strong> 來提供 Pod 之間的服務存取。但在實際應用中，Kubernetes 會自動將 Service 的資訊以環境變數的形式注入到 Pod 內部，這有時候會與應用程式原本預期的環境變數設計衝突，導致應用無法正常啟動。  </p>
+<p>本文以一次在 <strong>EKS 上部署 RabbitMQ Client（crawler app）</strong> 的真實案例，整理如何排查與修復由 <strong>自動注入的 Service 環境變數</strong> 所造成的錯誤。</p>
 <hr>
-<h3 id="patch-的運作原理"><a href="#patch-的運作原理" class="headerlink" title="patch 的運作原理"></a>patch 的運作原理</h3><p><code>patch</code> 會在測試期間，<strong>暫時替換掉指定位置的函式或物件</strong>，讓它回傳我們指定的內容。<br>一旦測試結束，替換會自動還原，不影響原本程式。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">with patch(&quot;模組路徑.函式名稱&quot;, return\_value=假資料):</span><br><span class="line">\# 測試程式在這裡執行時，呼叫的就是假資料</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><p>應用程式在 EKS 中部署後，Pod 出現以下錯誤：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ValueError: invalid literal for int() with base 10: &#x27;tcp://&lt;CLUSTER-IP&gt;:5672&#x27;</span><br><span class="line">````</span><br><span class="line"></span><br><span class="line">程式碼片段：</span><br><span class="line"></span><br><span class="line">```python</span><br><span class="line">rabbitmq_port: int = int(os.getenv(&quot;RABBITMQ_PORT&quot;, 5672))</span><br></pre></td></tr></table></figure>
 
-<hr>
-<h3 id="測試流程"><a href="#測試流程" class="headerlink" title="測試流程"></a>測試流程</h3><ol>
-<li><p><strong>準備假資料</strong><br>建立一個模擬後端回傳的 JSON。</p>
-</li>
-<li><p><strong>使用 patch 替換函式</strong><br>將 <code>backend_api_projects</code> 改成直接回傳假資料。</p>
-</li>
-<li><p><strong>發送 API 請求</strong><br>用測試用的 <code>async_client</code> 呼叫 <code>/project</code>。</p>
-</li>
-<li><p><strong>驗證結果</strong><br>確認回傳的 HTTP 狀態碼與資料筆數符合預期。</p>
-</li>
-</ol>
-<hr>
-<h3 id="範例流程圖"><a href="#範例流程圖" class="headerlink" title="範例流程圖"></a>範例流程圖</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">測試程式</span><br><span class="line">│</span><br><span class="line">├── patch backend\_api\_projects → 假資料</span><br><span class="line">│</span><br><span class="line">├── 呼叫 /project API</span><br><span class="line">│</span><br><span class="line">├── 執行 API 邏輯（使用假資料）</span><br><span class="line">│</span><br><span class="line">└── 驗證回傳內容是否符合預期</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>期望值：<br><code>RABBITMQ_PORT=5672</code></p>
+<p>實際值（容器內檢查）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it deployment/crawler -n &lt;namespace&gt; -- <span class="built_in">env</span> | grep RABBIT</span><br><span class="line">RABBITMQ_PORT=tcp://&lt;CLUSTER-IP&gt;:5672</span><br><span class="line">RABBITMQ_SERVICE_HOST=&lt;CLUSTER-IP&gt;</span><br><span class="line">RABBITMQ_SERVICE_PORT=5672</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
+<p>問題原因：<br>Kubernetes 會依照 Service 名稱，自動注入一系列環境變數，例如 <code>RABBITMQ_PORT</code>、<code>RABBITMQ_SERVICE_HOST</code>、<code>RABBITMQ_SERVICE_PORT</code>。其中 <code>RABBITMQ_PORT</code> 的格式是 URI（如 <code>tcp://&lt;IP&gt;:&lt;PORT&gt;</code>），導致程式在 <code>int()</code> 轉換時失敗。</p>
 <hr>
-<h3 id="完整測試範例"><a href="#完整測試範例" class="headerlink" title="完整測試範例"></a>完整測試範例</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">import pytest</span><br><span class="line">from unittest.mock import patch</span><br><span class="line"></span><br><span class="line">@pytest.mark.asyncio</span><br><span class="line">async def test\_list\_projects\_success(async\_client):</span><br><span class="line">\# 1. 準備假資料</span><br><span class="line">mock\_response = &#123;</span><br><span class="line">&quot;result&quot;: \[</span><br><span class="line">&#123;&quot;projectId&quot;: 1, &quot;projectName&quot;: &quot;Test Project&quot;&#125;,</span><br><span class="line">&#123;&quot;projectId&quot;: 2, &quot;projectName&quot;: &quot;Another Project&quot;&#125;</span><br><span class="line">]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 2. 使用 patch 替換 backend_api_projects</span><br><span class="line">with patch(&quot;app.services.project_service.backend_api_projects&quot;, return_value=mock_response):</span><br><span class="line">    # 3. 呼叫 API</span><br><span class="line">    response = await async_client.get(&quot;/project&quot;)</span><br><span class="line"></span><br><span class="line"># 4. 驗證結果</span><br><span class="line">assert response.status_code == 200</span><br><span class="line">data = response.json()</span><br><span class="line">assert data[&quot;status&quot;] == 200</span><br><span class="line">assert len(data[&quot;result&quot;][&quot;projectList&quot;]) == 2</span><br></pre></td></tr></table></figure>
+<h2 id="解決辦法"><a href="#解決辦法" class="headerlink" title="解決辦法"></a>解決辦法</h2><p>這個問題可以有多種修復策略，以下列出三種常見的解法：</p>
+<h3 id="方案一：覆蓋環境變數"><a href="#方案一：覆蓋環境變數" class="headerlink" title="方案一：覆蓋環境變數"></a>方案一：覆蓋環境變數</h3><p>在 Deployment &#x2F; Helm chart 中顯式定義 <code>RABBITMQ_PORT</code>，覆蓋掉 Kubernetes 自動注入的值：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">env:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">RABBITMQ_HOST</span></span><br><span class="line">    <span class="attr">value:</span> <span class="string">&quot;rabbitmq&quot;</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">RABBITMQ_PORT</span></span><br><span class="line">    <span class="attr">value:</span> <span class="string">&quot;5672&quot;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><strong>備註</strong>  </p>
-<ul>
-<li>單元測試（unit test）建議使用假資料，讓測試獨立且穩定。  </li>
-<li>如果要測試與真實後端的整合，則屬於整合測試（integration test）或 E2E 測試，這種測試會使用真實環境，但速度較慢、受外部影響大。</li>
+<p>這樣保證程式拿到的永遠是數字型態的 port。</p>
+<hr>
+<h3 id="方案二：程式調整"><a href="#方案二：程式調整" class="headerlink" title="方案二：程式調整"></a>方案二：程式調整</h3><p>避免直接讀取 <code>RABBITMQ_PORT</code>，改為使用 K8s 自動注入的 <code>RABBITMQ_SERVICE_HOST</code> 與 <code>RABBITMQ_SERVICE_PORT</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rabbitmq_host = os.getenv(<span class="string">&quot;RABBITMQ_SERVICE_HOST&quot;</span>, <span class="string">&quot;localhost&quot;</span>)</span><br><span class="line">rabbitmq_port = <span class="built_in">int</span>(os.getenv(<span class="string">&quot;RABBITMQ_SERVICE_PORT&quot;</span>, <span class="number">5672</span>))</span><br></pre></td></tr></table></figure>
+
+<p>這樣不僅避免轉型錯誤，也更符合 Kubernetes 的設計模式。</p>
+<hr>
+<h3 id="方案三：關閉-Service-Links"><a href="#方案三：關閉-Service-Links" class="headerlink" title="方案三：關閉 Service Links"></a>方案三：關閉 Service Links</h3><p>如果你完全不希望 Pod 自動注入 Service 環境變數，可以在 Deployment 規格中加上：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">enableServiceLinks:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p>此設定會關閉 <strong>Service Links</strong>，讓 Pod 內不會再出現類似 <code>RABBITMQ_PORT</code> 的變數，環境變數管理會更乾淨。</p>
+<hr>
+<h2 id="備註"><a href="#備註" class="headerlink" title="備註"></a>備註</h2><ul>
+<li>Kubernetes 預設會依照 Service 名稱注入 <code>&#123;SVCNAME&#125;_SERVICE_HOST</code>、<code>&#123;SVCNAME&#125;_SERVICE_PORT</code> 與 <code>&#123;SVCNAME&#125;_PORT</code> 等變數，這是設計行為，不是 Bug。</li>
+<li>如果應用程式需要更高的可攜性，建議改為使用 <strong>DNS Service Discovery</strong>（例如 <code>rabbitmq.&lt;namespace&gt;.svc.cluster.local:5672</code>）而非環境變數。</li>
+<li>在多個 Service 共存的情境下，<code>enableServiceLinks: false</code> 可以有效避免命名衝突與環境污染。</li>
 </ul>
-</blockquote>
+<hr>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>這次的問題核心在於 <strong>Kubernetes 預設行為與應用程式預期不一致</strong>。當 Pod 因為 Service 自動注入的環境變數導致程式崩潰時，可以透過：</p>
+<ol>
+<li><strong>覆蓋環境變數</strong>（最簡單），</li>
+<li><strong>修改程式邏輯</strong>（最佳實踐），</li>
+<li><strong>關閉 Service Links</strong>（徹底乾淨），</li>
+</ol>
+<p>三種方式進行修正。</p>
+<p>這是一個很典型的 DevOps 跨層問題，未來如果遇到類似狀況，可以快速從「容器內環境變數」檢查起手，迅速定位根因。</p>
+<h2 id="參考文獻"><a href="#參考文獻" class="headerlink" title="參考文獻"></a>參考文獻</h2><p><a class="link"   target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/services-networking/service/#environment-variables" >https://kubernetes.io/docs/concepts/services-networking/service/#environment-variables<i class="fas fa-external-link-alt"></i></a></p>
 
                     
                 </div>
@@ -357,11 +365,23 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Python/">Python</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Kubernetes/">Kubernetes</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/pytest/">pytest</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/EKS/">EKS</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Helm/">Helm</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Debug/">Debug</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/RabbitMQ/">RabbitMQ</a>
                                     </li>
                                 
                             </ul>
@@ -377,31 +397,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cmel47ih200000clc26nu7kb7/"
-                                   title="解決 Kubernetes Service 注入環境變數導致程式錯誤問題"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">解決 Kubernetes Service 注入環境變數導致程式錯誤問題</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmeaqvcyf0009b8lcbfiv7vqm/"
-                                   title="使用 argparse 建構 Python CLI 工具的核心運作邏輯"
+                                   href="/blog/cmearc1wz0000c0lcgij2fijp/"
+                                   title="在 pytest 使用假資料進行 API 測試"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">使用 argparse 建構 Python CLI 工具的核心運作邏輯</span>
+                                        <span class="post-nav-title-item text-ellipsis">在 pytest 使用假資料進行 API 測試</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -530,7 +534,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%8B%E4%BD%9C%E9%82%8F%E8%BC%AF"><span class="nav-text">運作邏輯</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%AC%E8%A9%A6%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">測試初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E7%94%A8%E5%81%87%E8%B3%87%E6%96%99%EF%BC%88mock%EF%BC%89"><span class="nav-text">為什麼要用假資料（mock）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#patch-%E7%9A%84%E9%81%8B%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-text">patch 的運作原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%AC%E8%A9%A6%E6%B5%81%E7%A8%8B"><span class="nav-text">測試流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E6%B5%81%E7%A8%8B%E5%9C%96"><span class="nav-text">範例流程圖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E6%B8%AC%E8%A9%A6%E7%AF%84%E4%BE%8B"><span class="nav-text">完整測試範例</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%A6%86%E8%93%8B%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8"><span class="nav-text">方案一：覆蓋環境變數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E7%A8%8B%E5%BC%8F%E8%AA%BF%E6%95%B4"><span class="nav-text">方案二：程式調整</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E9%97%9C%E9%96%89-Service-Links"><span class="nav-text">方案三：關閉 Service Links</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%82%99%E8%A8%BB"><span class="nav-text">備註</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-text">結論</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E6%96%87%E7%8D%BB"><span class="nav-text">參考文獻</span></a></li></ol>
     </div>
 </div>
 
@@ -713,7 +717,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%81%8B%E4%BD%9C%E9%82%8F%E8%BC%AF"><span class="nav-text">運作邏輯</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%AC%E8%A9%A6%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">測試初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%82%BA%E4%BB%80%E9%BA%BC%E8%A6%81%E7%94%A8%E5%81%87%E8%B3%87%E6%96%99%EF%BC%88mock%EF%BC%89"><span class="nav-text">為什麼要用假資料（mock）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#patch-%E7%9A%84%E9%81%8B%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-text">patch 的運作原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%AC%E8%A9%A6%E6%B5%81%E7%A8%8B"><span class="nav-text">測試流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E6%B5%81%E7%A8%8B%E5%9C%96"><span class="nav-text">範例流程圖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E6%B8%AC%E8%A9%A6%E7%AF%84%E4%BE%8B"><span class="nav-text">完整測試範例</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%A6%86%E8%93%8B%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8"><span class="nav-text">方案一：覆蓋環境變數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E7%A8%8B%E5%BC%8F%E8%AA%BF%E6%95%B4"><span class="nav-text">方案二：程式調整</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E9%97%9C%E9%96%89-Service-Links"><span class="nav-text">方案三：關閉 Service Links</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%82%99%E8%A8%BB"><span class="nav-text">備註</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-text">結論</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E6%96%87%E7%8D%BB"><span class="nav-text">參考文獻</span></a></li></ol>
     </div>
 </div>
 
