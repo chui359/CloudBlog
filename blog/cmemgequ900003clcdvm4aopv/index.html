@@ -9,7 +9,7 @@
     
     <title>
         
-            解決 Kubernetes Service 注入環境變數導致程式錯誤問題 |
+            PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理 |
         
         Cloudy&#39;s blog
     </title>
@@ -214,7 +214,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        解決 Kubernetes Service 注入環境變數導致程式錯誤問題
+                        PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理
                     </div>
                 
 
@@ -240,13 +240,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-08-21 15:59:50</span>
+                <span class="datetime">2025-08-22 14:31:59</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Thu Aug 21 2025 16:02:46 GMT+0800">2025-08-21 16:02:46</span>
+                    <span class="datetime" data-updated="Fri Aug 22 2025 14:32:51 GMT+0800">2025-08-22 14:32:51</span>
                 </span>
             
         
@@ -255,10 +255,10 @@
             <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
                 <ul class="post-category-ul">
                     
-                            <li class="category-item"><a href="/categories/DevOps/">DevOps</a></li>
+                            <li class="category-item"><a href="/categories/PostgreSQL/">PostgreSQL</a></li>
                         
                     
-                            <li class="category-item">&nbsp;<i class="icon fas fa-angle-right"></i>&nbsp;<a href="/categories/DevOps/Kubernetes/">Kubernetes</a></li>
+                            <li class="category-item">&nbsp;<i class="icon fas fa-angle-right"></i>&nbsp;<a href="/categories/PostgreSQL/%E8%B3%87%E6%96%99%E5%BA%AB%E7%AE%A1%E7%90%86/">資料庫管理</a></li>
                         
                     
                 </ul>
@@ -269,19 +269,10 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Kubernetes/">Kubernetes</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/PostgreSQL/">PostgreSQL</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/EKS/">EKS</a></li>
-                        
-                    
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Helm/">Helm</a></li>
-                        
-                    
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Debug/">Debug</a></li>
-                        
-                    
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/RabbitMQ/">RabbitMQ</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/ENUM/">ENUM</a></li>
                         
                     
                 </ul>
@@ -310,49 +301,39 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 Kubernetes 上部署應用程式時，經常會利用 <strong>Service</strong> 來提供 Pod 之間的服務存取。但在實際應用中，Kubernetes 會自動將 Service 的資訊以環境變數的形式注入到 Pod 內部，這有時候會與應用程式原本預期的環境變數設計衝突，導致應用無法正常啟動。  </p>
-<p>本文以一次在 <strong>EKS 上部署 RabbitMQ Client（crawler app）</strong> 的真實案例，整理如何排查與修復由 <strong>自動注入的 Service 環境變數</strong> 所造成的錯誤。</p>
-<hr>
-<h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><p>應用程式在 EKS 中部署後，Pod 出現以下錯誤：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ValueError: invalid literal for int() with base 10: &#x27;tcp://&lt;CLUSTER-IP&gt;:5672&#x27;</span><br><span class="line">````</span><br><span class="line"></span><br><span class="line">程式碼片段：</span><br><span class="line"></span><br><span class="line">```python</span><br><span class="line">rabbitmq_port: int = int(os.getenv(&quot;RABBITMQ_PORT&quot;, 5672))</span><br></pre></td></tr></table></figure>
-
-<p>期望值：<br><code>RABBITMQ_PORT=5672</code></p>
-<p>實際值（容器內檢查）：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it deployment/crawler -n &lt;namespace&gt; -- <span class="built_in">env</span> | grep RABBIT</span><br><span class="line">RABBITMQ_PORT=tcp://&lt;CLUSTER-IP&gt;:5672</span><br><span class="line">RABBITMQ_SERVICE_HOST=&lt;CLUSTER-IP&gt;</span><br><span class="line">RABBITMQ_SERVICE_PORT=5672</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>問題原因：<br>Kubernetes 會依照 Service 名稱，自動注入一系列環境變數，例如 <code>RABBITMQ_PORT</code>、<code>RABBITMQ_SERVICE_HOST</code>、<code>RABBITMQ_SERVICE_PORT</code>。其中 <code>RABBITMQ_PORT</code> 的格式是 URI（如 <code>tcp://&lt;IP&gt;:&lt;PORT&gt;</code>），導致程式在 <code>int()</code> 轉換時失敗。</p>
-<hr>
-<h2 id="解決辦法"><a href="#解決辦法" class="headerlink" title="解決辦法"></a>解決辦法</h2><p>這個問題可以有多種修復策略，以下列出三種常見的解法：</p>
-<h3 id="方案一：覆蓋環境變數"><a href="#方案一：覆蓋環境變數" class="headerlink" title="方案一：覆蓋環境變數"></a>方案一：覆蓋環境變數</h3><p>在 Deployment &#x2F; Helm chart 中顯式定義 <code>RABBITMQ_PORT</code>，覆蓋掉 Kubernetes 自動注入的值：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">env:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">RABBITMQ_HOST</span></span><br><span class="line">    <span class="attr">value:</span> <span class="string">&quot;rabbitmq&quot;</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">RABBITMQ_PORT</span></span><br><span class="line">    <span class="attr">value:</span> <span class="string">&quot;5672&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>這樣保證程式拿到的永遠是數字型態的 port。</p>
-<hr>
-<h3 id="方案二：程式調整"><a href="#方案二：程式調整" class="headerlink" title="方案二：程式調整"></a>方案二：程式調整</h3><p>避免直接讀取 <code>RABBITMQ_PORT</code>，改為使用 K8s 自動注入的 <code>RABBITMQ_SERVICE_HOST</code> 與 <code>RABBITMQ_SERVICE_PORT</code>：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rabbitmq_host = os.getenv(<span class="string">&quot;RABBITMQ_SERVICE_HOST&quot;</span>, <span class="string">&quot;localhost&quot;</span>)</span><br><span class="line">rabbitmq_port = <span class="built_in">int</span>(os.getenv(<span class="string">&quot;RABBITMQ_SERVICE_PORT&quot;</span>, <span class="number">5672</span>))</span><br></pre></td></tr></table></figure>
-
-<p>這樣不僅避免轉型錯誤，也更符合 Kubernetes 的設計模式。</p>
-<hr>
-<h3 id="方案三：關閉-Service-Links"><a href="#方案三：關閉-Service-Links" class="headerlink" title="方案三：關閉 Service Links"></a>方案三：關閉 Service Links</h3><p>如果你完全不希望 Pod 自動注入 Service 環境變數，可以在 Deployment 規格中加上：</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">enableServiceLinks:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
-
-<p>此設定會關閉 <strong>Service Links</strong>，讓 Pod 內不會再出現類似 <code>RABBITMQ_PORT</code> 的變數，環境變數管理會更乾淨。</p>
-<hr>
-<h2 id="備註"><a href="#備註" class="headerlink" title="備註"></a>備註</h2><ul>
-<li>Kubernetes 預設會依照 Service 名稱注入 <code>&#123;SVCNAME&#125;_SERVICE_HOST</code>、<code>&#123;SVCNAME&#125;_SERVICE_PORT</code> 與 <code>&#123;SVCNAME&#125;_PORT</code> 等變數，這是設計行為，不是 Bug。</li>
-<li>如果應用程式需要更高的可攜性，建議改為使用 <strong>DNS Service Discovery</strong>（例如 <code>rabbitmq.&lt;namespace&gt;.svc.cluster.local:5672</code>）而非環境變數。</li>
-<li>在多個 Service 共存的情境下，<code>enableServiceLinks: false</code> 可以有效避免命名衝突與環境污染。</li>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在後端開發中，使用 ORM（如 SQLAlchemy）設計具備 Enum 型別的資料表是一種常見做法，尤其在任務管理、自訂狀態流程等場景中相當實用。然而，當將此設計實際部署到 PostgreSQL 資料庫時，若未正確建置 ENUM 型別，經常會遇到各種型別或預設值相關錯誤。本篇文章整理了我在建置 <code>task</code> 及 <code>result</code> 資料表時，所遇到的 PostgreSQL ENUM 型別相關問題，並歸納出最有效的解決辦法，提供給有相同需求的開發者參考。</p>
+<h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><ol>
+<li><p><strong>未建立 ENUM 型別導致插入失敗</strong></p>
+<ul>
+<li>當 ORM 內 <code>status</code> 欄位設為 Enum，但 PostgreSQL 尚未建立對應 ENUM 型別，執行插入或建表時出現如下錯誤：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR:  type &quot;taskstatus&quot; does not exist</span><br></pre></td></tr></table></figure></li>
 </ul>
-<hr>
-<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>這次的問題核心在於 <strong>Kubernetes 預設行為與應用程式預期不一致</strong>。當 Pod 因為 Service 自動注入的環境變數導致程式崩潰時，可以透過：</p>
-<ol>
-<li><strong>覆蓋環境變數</strong>（最簡單），</li>
-<li><strong>修改程式邏輯</strong>（最佳實踐），</li>
-<li><strong>關閉 Service Links</strong>（徹底乾淨），</li>
+</li>
+<li><p><strong>修改欄位型別時預設值衝突</strong></p>
+<ul>
+<li>當嘗試將既有欄位型別從 <code>VARCHAR</code> 轉為 ENUM 型別時，若欄位有預設值，會出現如下錯誤：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR:  default for column &quot;status&quot; cannot be cast automatically to type taskstatus</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
 </ol>
-<p>三種方式進行修正。</p>
-<p>這是一個很典型的 DevOps 跨層問題，未來如果遇到類似狀況，可以快速從「容器內環境變數」檢查起手，迅速定位根因。</p>
-<h2 id="參考文獻"><a href="#參考文獻" class="headerlink" title="參考文獻"></a>參考文獻</h2><p><a class="link"   target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/services-networking/service/#environment-variables" >https://kubernetes.io/docs/concepts/services-networking/service/#environment-variables<i class="fas fa-external-link-alt"></i></a></p>
+<h2 id="解決辦法"><a href="#解決辦法" class="headerlink" title="解決辦法"></a>解決辦法</h2><h3 id="1-建立-ENUM-型別"><a href="#1-建立-ENUM-型別" class="headerlink" title="1. 建立 ENUM 型別"></a>1. 建立 ENUM 型別</h3><p>在建立資料表前，必須先建立 ENUM 型別（以 <code>taskstatus</code> 為例，並補齊所有狀態值）：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> TYPE taskstatus <span class="keyword">AS</span> ENUM (<span class="string">&#x27;PENDING&#x27;</span>, <span class="string">&#x27;RUNNING&#x27;</span>, <span class="string">&#x27;SUCCESS&#x27;</span>, <span class="string">&#x27;FAILED&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-建立資料表"><a href="#2-建立資料表" class="headerlink" title="2. 建立資料表"></a>2. 建立資料表</h3><p>正確使用 ENUM 型別於資料表 schema：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> task (</span><br><span class="line">    id UUID <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    url TEXT <span class="keyword">NOT NULL</span>,</span><br><span class="line">    status taskstatus <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;PENDING&#x27;</span>,</span><br><span class="line">    created_at <span class="type">TIMESTAMP</span> <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> NOW(),</span><br><span class="line">    started_at <span class="type">TIMESTAMP</span> <span class="keyword">NULL</span>,</span><br><span class="line">    finished_at <span class="type">TIMESTAMP</span> <span class="keyword">NULL</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE TABLE</span> <span class="keyword">result</span> (</span><br><span class="line">    id UUID <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    task_id UUID <span class="keyword">NOT NULL</span>,</span><br><span class="line">    url TEXT <span class="keyword">NOT NULL</span>,</span><br><span class="line">    s3_path TEXT <span class="keyword">NULL</span>,</span><br><span class="line">    <span class="keyword">CONSTRAINT</span> fk_task <span class="keyword">FOREIGN KEY</span>(task_id) <span class="keyword">REFERENCES</span> task(id)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">COMMENT <span class="keyword">ON</span> <span class="keyword">COLUMN</span> result.s3_path <span class="keyword">IS</span> <span class="string">&#x27;s3 path where to store the raw HTML&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-既有欄位型別轉換（含預設值）"><a href="#3-既有欄位型別轉換（含預設值）" class="headerlink" title="3. 既有欄位型別轉換（含預設值）"></a>3. 既有欄位型別轉換（含預設值）</h3><p>若需將既有資料表 <code>status</code> 欄位型別由 <code>VARCHAR</code> 轉為 ENUM，請依以下步驟操作：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 1. 移除預設值</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> task <span class="keyword">ALTER</span> <span class="keyword">COLUMN</span> status <span class="keyword">DROP</span> <span class="keyword">DEFAULT</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 修改型別</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> task <span class="keyword">ALTER</span> <span class="keyword">COLUMN</span> status TYPE taskstatus <span class="keyword">USING</span> status::text::taskstatus;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. 重新設定預設值</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> task <span class="keyword">ALTER</span> <span class="keyword">COLUMN</span> status <span class="keyword">SET</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;PENDING&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-補充：加速查詢建議"><a href="#4-補充：加速查詢建議" class="headerlink" title="4. 補充：加速查詢建議"></a>4. 補充：加速查詢建議</h3><p>如有頻繁查詢需求，可針對關鍵欄位建立索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_result_task_id <span class="keyword">ON</span> <span class="keyword">result</span>(task_id);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_task_url <span class="keyword">ON</span> task(url);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>備註</strong>：  </p>
+<ul>
+<li>若使用 migration 工具（如 Alembic），建議將 ENUM 型別建立、資料表建置及型別轉換操作，納入 migration script，確保多人協作及環境一致性。</li>
+<li>若有更多狀態或其他自訂 ENUM 型別需求，請先完整列出所有 Enum 欄位可能值，避免日後資料衝突。</li>
+<li>若遇到其他型別轉換相關錯誤，建議優先檢查預設值與現有資料型別是否相容。</li>
+</ul>
+</blockquote>
 
                     
                 </div>
@@ -365,23 +346,11 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Kubernetes/">Kubernetes</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/PostgreSQL/">PostgreSQL</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/EKS/">EKS</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Helm/">Helm</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Debug/">Debug</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/RabbitMQ/">RabbitMQ</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/ENUM/">ENUM</a>
                                     </li>
                                 
                             </ul>
@@ -397,31 +366,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cmemgequ900003clcdvm4aopv/"
-                                   title="PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmearc1wz0000c0lcgij2fijp/"
-                                   title="在 pytest 使用假資料進行 API 測試"
+                                   href="/blog/cmel47ih200000clc26nu7kb7/"
+                                   title="解決 Kubernetes Service 注入環境變數導致程式錯誤問題"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">在 pytest 使用假資料進行 API 測試</span>
+                                        <span class="post-nav-title-item text-ellipsis">解決 Kubernetes Service 注入環境變數導致程式錯誤問題</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -550,7 +503,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%A6%86%E8%93%8B%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8"><span class="nav-text">方案一：覆蓋環境變數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E7%A8%8B%E5%BC%8F%E8%AA%BF%E6%95%B4"><span class="nav-text">方案二：程式調整</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E9%97%9C%E9%96%89-Service-Links"><span class="nav-text">方案三：關閉 Service Links</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%82%99%E8%A8%BB"><span class="nav-text">備註</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-text">結論</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E6%96%87%E7%8D%BB"><span class="nav-text">參考文獻</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B-ENUM-%E5%9E%8B%E5%88%A5"><span class="nav-text">1. 建立 ENUM 型別</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BB%BA%E7%AB%8B%E8%B3%87%E6%96%99%E8%A1%A8"><span class="nav-text">2. 建立資料表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%97%A2%E6%9C%89%E6%AC%84%E4%BD%8D%E5%9E%8B%E5%88%A5%E8%BD%89%E6%8F%9B%EF%BC%88%E5%90%AB%E9%A0%90%E8%A8%AD%E5%80%BC%EF%BC%89"><span class="nav-text">3. 既有欄位型別轉換（含預設值）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%A3%9C%E5%85%85%EF%BC%9A%E5%8A%A0%E9%80%9F%E6%9F%A5%E8%A9%A2%E5%BB%BA%E8%AD%B0"><span class="nav-text">4. 補充：加速查詢建議</span></a></li></ol></li></ol>
     </div>
 </div>
 
@@ -733,7 +686,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%A6%86%E8%93%8B%E7%92%B0%E5%A2%83%E8%AE%8A%E6%95%B8"><span class="nav-text">方案一：覆蓋環境變數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E7%A8%8B%E5%BC%8F%E8%AA%BF%E6%95%B4"><span class="nav-text">方案二：程式調整</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E9%97%9C%E9%96%89-Service-Links"><span class="nav-text">方案三：關閉 Service Links</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%82%99%E8%A8%BB"><span class="nav-text">備註</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-text">結論</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%83%E8%80%83%E6%96%87%E7%8D%BB"><span class="nav-text">參考文獻</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B-ENUM-%E5%9E%8B%E5%88%A5"><span class="nav-text">1. 建立 ENUM 型別</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BB%BA%E7%AB%8B%E8%B3%87%E6%96%99%E8%A1%A8"><span class="nav-text">2. 建立資料表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%97%A2%E6%9C%89%E6%AC%84%E4%BD%8D%E5%9E%8B%E5%88%A5%E8%BD%89%E6%8F%9B%EF%BC%88%E5%90%AB%E9%A0%90%E8%A8%AD%E5%80%BC%EF%BC%89"><span class="nav-text">3. 既有欄位型別轉換（含預設值）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%A3%9C%E5%85%85%EF%BC%9A%E5%8A%A0%E9%80%9F%E6%9F%A5%E8%A9%A2%E5%BB%BA%E8%AD%B0"><span class="nav-text">4. 補充：加速查詢建議</span></a></li></ol></li></ol>
     </div>
 </div>
 
