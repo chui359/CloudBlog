@@ -9,7 +9,7 @@
     
     <title>
         
-            PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理 |
+            如何重置在 Amazon EKS 上部署的 RabbitMQ 叢集 |
         
         Cloudy&#39;s blog
     </title>
@@ -214,7 +214,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理
+                        如何重置在 Amazon EKS 上部署的 RabbitMQ 叢集
                     </div>
                 
 
@@ -240,13 +240,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-08-22 14:31:59</span>
+                <span class="datetime">2025-08-26 13:50:30</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Fri Aug 22 2025 14:32:51 GMT+0800">2025-08-22 14:32:51</span>
+                    <span class="datetime" data-updated="Tue Aug 26 2025 13:52:58 GMT+0800">2025-08-26 13:52:58</span>
                 </span>
             
         
@@ -255,10 +255,10 @@
             <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
                 <ul class="post-category-ul">
                     
-                            <li class="category-item"><a href="/categories/PostgreSQL/">PostgreSQL</a></li>
+                            <li class="category-item"><a href="/categories/DevOps/">DevOps</a></li>
                         
                     
-                            <li class="category-item">&nbsp;<i class="icon fas fa-angle-right"></i>&nbsp;<a href="/categories/PostgreSQL/%E8%B3%87%E6%96%99%E5%BA%AB%E7%AE%A1%E7%90%86/">資料庫管理</a></li>
+                            <li class="category-item">&nbsp;<i class="icon fas fa-angle-right"></i>&nbsp;<a href="/categories/DevOps/Kubernetes/">Kubernetes</a></li>
                         
                     
                 </ul>
@@ -269,10 +269,13 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/PostgreSQL/">PostgreSQL</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Kubernetes/">Kubernetes</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/ENUM/">ENUM</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/EKS/">EKS</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/RabbitMQ/">RabbitMQ</a></li>
                         
                     
                 </ul>
@@ -301,39 +304,64 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在後端開發中，使用 ORM（如 SQLAlchemy）設計具備 Enum 型別的資料表是一種常見做法，尤其在任務管理、自訂狀態流程等場景中相當實用。然而，當將此設計實際部署到 PostgreSQL 資料庫時，若未正確建置 ENUM 型別，經常會遇到各種型別或預設值相關錯誤。本篇文章整理了我在建置 <code>task</code> 及 <code>result</code> 資料表時，所遇到的 PostgreSQL ENUM 型別相關問題，並歸納出最有效的解決辦法，提供給有相同需求的開發者參考。</p>
-<h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><ol>
-<li><p><strong>未建立 ENUM 型別導致插入失敗</strong></p>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>隨著企業對高可用與可擴展訊息佇列服務的需求增加，RabbitMQ 在 Kubernetes（特別是 Amazon EKS）上的部署愈發普及。然而，當叢集運行一段時間後，難免會遇到需要重啟或重置 RabbitMQ 叢集的情境，例如配置更新、節點異常等。本文將說明在 Amazon EKS 上，如何安全且有效地重置 RabbitMQ 叢集，並提供相應操作步驟與程式碼範例，協助維運人員快速處理相關問題。</p>
+<h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><p>當 RabbitMQ 叢集出現下列狀況時，可能需要進行重置或重啟操作：</p>
 <ul>
-<li>當 ORM 內 <code>status</code> 欄位設為 Enum，但 PostgreSQL 尚未建立對應 ENUM 型別，執行插入或建表時出現如下錯誤：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR:  type &quot;taskstatus&quot; does not exist</span><br></pre></td></tr></table></figure></li>
+<li>RabbitMQ 節點出現異常或資料損壞</li>
+<li>部分設定需重新載入</li>
+<li>叢集需要釋放資源或解決暫時性問題</li>
+</ul>
+<p>針對不同需求，我們可以選擇「滾動重啟整個叢集」或「個別節點重置」兩種方式。</p>
+<h2 id="解決辦法"><a href="#解決辦法" class="headerlink" title="解決辦法"></a>解決辦法</h2><h3 id="1-滾動重啟-RabbitMQ-Pods（建議做法）"><a href="#1-滾動重啟-RabbitMQ-Pods（建議做法）" class="headerlink" title="1. 滾動重啟 RabbitMQ Pods（建議做法）"></a>1. 滾動重啟 RabbitMQ Pods（建議做法）</h3><p>若僅需重新載入設定或解決小型問題，推薦採用 StatefulSet 的滾動重啟。此方式可最小化服務中斷，逐一重啟每個 Pod。</p>
+<h3 id="操作步驟"><a href="#操作步驟" class="headerlink" title="操作步驟"></a>操作步驟</h3><ol>
+<li><p>執行以下指令，重啟 RabbitMQ 的 StatefulSet：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl rollout restart statefulset &lt;your-rabbitmq-statefulset-name&gt; -n &lt;your-namespace&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>請將 <code>&lt;your-rabbitmq-statefulset-name&gt;</code> 替換成實際的 StatefulSet 名稱。</li>
+<li><code>&lt;your-namespace&gt;</code> 則為 RabbitMQ 部署於 Kubernetes 的命名空間。</li>
 </ul>
 </li>
-<li><p><strong>修改欄位型別時預設值衝突</strong></p>
-<ul>
-<li>當嘗試將既有欄位型別從 <code>VARCHAR</code> 轉為 ENUM 型別時，若欄位有預設值，會出現如下錯誤：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ERROR:  default for column &quot;status&quot; cannot be cast automatically to type taskstatus</span><br></pre></td></tr></table></figure></li>
-</ul>
+<li><p>等待所有 Pod 依序重啟完成。</p>
 </li>
 </ol>
-<h2 id="解決辦法"><a href="#解決辦法" class="headerlink" title="解決辦法"></a>解決辦法</h2><h3 id="1-建立-ENUM-型別"><a href="#1-建立-ENUM-型別" class="headerlink" title="1. 建立 ENUM 型別"></a>1. 建立 ENUM 型別</h3><p>在建立資料表前，必須先建立 ENUM 型別（以 <code>taskstatus</code> 為例，並補齊所有狀態值）：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> TYPE taskstatus <span class="keyword">AS</span> ENUM (<span class="string">&#x27;PENDING&#x27;</span>, <span class="string">&#x27;RUNNING&#x27;</span>, <span class="string">&#x27;SUCCESS&#x27;</span>, <span class="string">&#x27;FAILED&#x27;</span>);</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-建立資料表"><a href="#2-建立資料表" class="headerlink" title="2. 建立資料表"></a>2. 建立資料表</h3><p>正確使用 ENUM 型別於資料表 schema：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> task (</span><br><span class="line">    id UUID <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    url TEXT <span class="keyword">NOT NULL</span>,</span><br><span class="line">    status taskstatus <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;PENDING&#x27;</span>,</span><br><span class="line">    created_at <span class="type">TIMESTAMP</span> <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> NOW(),</span><br><span class="line">    started_at <span class="type">TIMESTAMP</span> <span class="keyword">NULL</span>,</span><br><span class="line">    finished_at <span class="type">TIMESTAMP</span> <span class="keyword">NULL</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE TABLE</span> <span class="keyword">result</span> (</span><br><span class="line">    id UUID <span class="keyword">PRIMARY KEY</span>,</span><br><span class="line">    task_id UUID <span class="keyword">NOT NULL</span>,</span><br><span class="line">    url TEXT <span class="keyword">NOT NULL</span>,</span><br><span class="line">    s3_path TEXT <span class="keyword">NULL</span>,</span><br><span class="line">    <span class="keyword">CONSTRAINT</span> fk_task <span class="keyword">FOREIGN KEY</span>(task_id) <span class="keyword">REFERENCES</span> task(id)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">COMMENT <span class="keyword">ON</span> <span class="keyword">COLUMN</span> result.s3_path <span class="keyword">IS</span> <span class="string">&#x27;s3 path where to store the raw HTML&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-既有欄位型別轉換（含預設值）"><a href="#3-既有欄位型別轉換（含預設值）" class="headerlink" title="3. 既有欄位型別轉換（含預設值）"></a>3. 既有欄位型別轉換（含預設值）</h3><p>若需將既有資料表 <code>status</code> 欄位型別由 <code>VARCHAR</code> 轉為 ENUM，請依以下步驟操作：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 1. 移除預設值</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> task <span class="keyword">ALTER</span> <span class="keyword">COLUMN</span> status <span class="keyword">DROP</span> <span class="keyword">DEFAULT</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 修改型別</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> task <span class="keyword">ALTER</span> <span class="keyword">COLUMN</span> status TYPE taskstatus <span class="keyword">USING</span> status::text::taskstatus;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. 重新設定預設值</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> task <span class="keyword">ALTER</span> <span class="keyword">COLUMN</span> status <span class="keyword">SET</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;PENDING&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-補充：加速查詢建議"><a href="#4-補充：加速查詢建議" class="headerlink" title="4. 補充：加速查詢建議"></a>4. 補充：加速查詢建議</h3><p>如有頻繁查詢需求，可針對關鍵欄位建立索引：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> INDEX idx_result_task_id <span class="keyword">ON</span> <span class="keyword">result</span>(task_id);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX idx_task_url <span class="keyword">ON</span> task(url);</span><br></pre></td></tr></table></figure>
-
 <blockquote>
-<p><strong>備註</strong>：  </p>
+<p>注意事項：</p>
 <ul>
-<li>若使用 migration 工具（如 Alembic），建議將 ENUM 型別建立、資料表建置及型別轉換操作，納入 migration script，確保多人協作及環境一致性。</li>
-<li>若有更多狀態或其他自訂 ENUM 型別需求，請先完整列出所有 Enum 欄位可能值，避免日後資料衝突。</li>
-<li>若遇到其他型別轉換相關錯誤，建議優先檢查預設值與現有資料型別是否相容。</li>
+<li>滾動重啟會保留節點資料與叢集狀態，僅重新啟動應用服務，風險低且建議優先採用。</li>
 </ul>
 </blockquote>
+<hr>
+<h3 id="2-重置單一-RabbitMQ-節點（較嚴重情境）"><a href="#2-重置單一-RabbitMQ-節點（較嚴重情境）" class="headerlink" title="2. 重置單一 RabbitMQ 節點（較嚴重情境）"></a>2. 重置單一 RabbitMQ 節點（較嚴重情境）</h3><p>若某個 RabbitMQ 節點嚴重異常或需清除資料庫時，可手動進行節點重置。<strong>此操作將移除該節點內部資料，請務必確認是否有備份，並評估對叢集的影響。</strong></p>
+<h3 id="操作步驟-1"><a href="#操作步驟-1" class="headerlink" title="操作步驟"></a>操作步驟</h3><ol>
+<li><p>進入欲重置的 RabbitMQ Pod：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl <span class="built_in">exec</span> -it &lt;your-rabbitmq-pod-name&gt; -n &lt;your-namespace&gt; -- bash</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>停止 RabbitMQ 應用：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmqctl stop_app</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>執行重置指令（兩種選擇）：</p>
+<p> 一般重置（移除資料，但維持叢集與使用者資訊）：</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmqctl reset</span><br></pre></td></tr></table></figure>
+<p> 強制重置（更徹底移除）：</p>
+ <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmqctl force_reset</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重新啟動 RabbitMQ 應用：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmqctl start_app</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>離開 Pod：</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">exit</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<blockquote>
+<p>注意事項：</p>
+<ul>
+<li><code>rabbitmqctl reset</code> 或 <code>force_reset</code> 會移除該節點的資料庫，適用於資料損壞或需要重建節點時。</li>
+<li>重置操作前，請確認叢集其他節點皆健康，避免叢集狀態異常。</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="3-使用-RabbitMQ-Cluster-Kubernetes-Operator（進階場景）"><a href="#3-使用-RabbitMQ-Cluster-Kubernetes-Operator（進階場景）" class="headerlink" title="3. 使用 RabbitMQ Cluster Kubernetes Operator（進階場景）"></a>3. 使用 RabbitMQ Cluster Kubernetes Operator（進階場景）</h3><p>若叢集是透過 <a class="link"   target="_blank" rel="noopener" href="https://www.rabbitmq.com/kubernetes/operator/operator-overview.html" >RabbitMQ Cluster Kubernetes Operator<i class="fas fa-external-link-alt"></i></a> 管理，建議依照官方文件操作，因 Operator 會自動管理節點生命週期，直接手動重置可能導致不一致狀態。</p>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>在 Amazon EKS 上管理 RabbitMQ 叢集時，根據實際需求選擇適合的重置方式至關重要。滾動重啟適合日常維運與輕微問題，節點重置則適用於重大異常修復。維運人員應熟悉上述操作流程，並於執行前充分評估風險與備援措施，以確保系統穩定運作。</p>
+<hr>
 
                     
                 </div>
@@ -346,11 +374,15 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/PostgreSQL/">PostgreSQL</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Kubernetes/">Kubernetes</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/ENUM/">ENUM</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/EKS/">EKS</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/RabbitMQ/">RabbitMQ</a>
                                     </li>
                                 
                             </ul>
@@ -366,31 +398,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cmes4r8s60000j8lch35g7zwe/"
-                                   title="如何重置在 Amazon EKS 上部署的 RabbitMQ 叢集"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">如何重置在 Amazon EKS 上部署的 RabbitMQ 叢集</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmel47ih200000clc26nu7kb7/"
-                                   title="解決 Kubernetes Service 注入環境變數導致程式錯誤問題"
+                                   href="/blog/cmemgequ900003clcdvm4aopv/"
+                                   title="PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">解決 Kubernetes Service 注入環境變數導致程式錯誤問題</span>
+                                        <span class="post-nav-title-item text-ellipsis">PostgreSQL ENUM 型別與資料表建置常見錯誤與解決方法整理</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -519,7 +535,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B-ENUM-%E5%9E%8B%E5%88%A5"><span class="nav-text">1. 建立 ENUM 型別</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BB%BA%E7%AB%8B%E8%B3%87%E6%96%99%E8%A1%A8"><span class="nav-text">2. 建立資料表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%97%A2%E6%9C%89%E6%AC%84%E4%BD%8D%E5%9E%8B%E5%88%A5%E8%BD%89%E6%8F%9B%EF%BC%88%E5%90%AB%E9%A0%90%E8%A8%AD%E5%80%BC%EF%BC%89"><span class="nav-text">3. 既有欄位型別轉換（含預設值）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%A3%9C%E5%85%85%EF%BC%9A%E5%8A%A0%E9%80%9F%E6%9F%A5%E8%A9%A2%E5%BB%BA%E8%AD%B0"><span class="nav-text">4. 補充：加速查詢建議</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%BB%BE%E5%8B%95%E9%87%8D%E5%95%9F-RabbitMQ-Pods%EF%BC%88%E5%BB%BA%E8%AD%B0%E5%81%9A%E6%B3%95%EF%BC%89"><span class="nav-text">1. 滾動重啟 RabbitMQ Pods（建議做法）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%A9%9F"><span class="nav-text">操作步驟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%87%8D%E7%BD%AE%E5%96%AE%E4%B8%80-RabbitMQ-%E7%AF%80%E9%BB%9E%EF%BC%88%E8%BC%83%E5%9A%B4%E9%87%8D%E6%83%85%E5%A2%83%EF%BC%89"><span class="nav-text">2. 重置單一 RabbitMQ 節點（較嚴重情境）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%A9%9F-1"><span class="nav-text">操作步驟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BD%BF%E7%94%A8-RabbitMQ-Cluster-Kubernetes-Operator%EF%BC%88%E9%80%B2%E9%9A%8E%E5%A0%B4%E6%99%AF%EF%BC%89"><span class="nav-text">3. 使用 RabbitMQ Cluster Kubernetes Operator（進階場景）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-text">結論</span></a></li></ol>
     </div>
 </div>
 
@@ -702,7 +718,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B-ENUM-%E5%9E%8B%E5%88%A5"><span class="nav-text">1. 建立 ENUM 型別</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%BB%BA%E7%AB%8B%E8%B3%87%E6%96%99%E8%A1%A8"><span class="nav-text">2. 建立資料表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%97%A2%E6%9C%89%E6%AC%84%E4%BD%8D%E5%9E%8B%E5%88%A5%E8%BD%89%E6%8F%9B%EF%BC%88%E5%90%AB%E9%A0%90%E8%A8%AD%E5%80%BC%EF%BC%89"><span class="nav-text">3. 既有欄位型別轉換（含預設值）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%A3%9C%E5%85%85%EF%BC%9A%E5%8A%A0%E9%80%9F%E6%9F%A5%E8%A9%A2%E5%BB%BA%E8%AD%B0"><span class="nav-text">4. 補充：加速查詢建議</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%BB%BE%E5%8B%95%E9%87%8D%E5%95%9F-RabbitMQ-Pods%EF%BC%88%E5%BB%BA%E8%AD%B0%E5%81%9A%E6%B3%95%EF%BC%89"><span class="nav-text">1. 滾動重啟 RabbitMQ Pods（建議做法）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%A9%9F"><span class="nav-text">操作步驟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E9%87%8D%E7%BD%AE%E5%96%AE%E4%B8%80-RabbitMQ-%E7%AF%80%E9%BB%9E%EF%BC%88%E8%BC%83%E5%9A%B4%E9%87%8D%E6%83%85%E5%A2%83%EF%BC%89"><span class="nav-text">2. 重置單一 RabbitMQ 節點（較嚴重情境）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%A9%9F-1"><span class="nav-text">操作步驟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BD%BF%E7%94%A8-RabbitMQ-Cluster-Kubernetes-Operator%EF%BC%88%E9%80%B2%E9%9A%8E%E5%A0%B4%E6%99%AF%EF%BC%89"><span class="nav-text">3. 使用 RabbitMQ Cluster Kubernetes Operator（進階場景）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-text">結論</span></a></li></ol>
     </div>
 </div>
 
