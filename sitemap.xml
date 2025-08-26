@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://cloudy-blog.netlify.app/blog/cmescd78l00006glcfix1aw1i/</loc>
+    
+    <lastmod>2025-08-26</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://cloudy-blog.netlify.app/blog/cmes4r8s60000j8lch35g7zwe/</loc>
     
     <lastmod>2025-08-26</lastmod>
@@ -273,6 +282,20 @@
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/ENUM/</loc>
+    <lastmod>2025-08-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/sorted/</loc>
+    <lastmod>2025-08-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/lambda/</loc>
     <lastmod>2025-08-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
