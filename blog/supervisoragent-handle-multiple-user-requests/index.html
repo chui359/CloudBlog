@@ -35,7 +35,7 @@
     <script class="keep-theme-configurations">
     const KEEP = window.KEEP || {}
     KEEP.hexo_config = {"hostname":"cloudy-blog.netlify.app","root":"/","language":"en","path":"search.json"}
-    KEEP.theme_config = {"base_info":{"primary_color":"#0066cc","title":"Cloudy's blog","author":"Cloudy","avatar":"/images/cloud.png","logo":"/images/cloud.png","favicon":"/images/cloud.png","mode":"light"},"menu":{"home":"/","archives":"/archives","tags":"/tags","about":"/about"},"first_screen":{"enable":false,"background_img":"/images/bg.svg","background_img_dark":"/images/bg.svg","description":"Keep writing and Keep loving.","hitokoto":false},"social_contact":{"enable":false,"links":{"github":null,"weixin":null,"qq":null,"weibo":null,"zhihu":null,"twitter":null,"x":null,"facebook":null,"email":null}},"scroll":{"progress_bar":false,"percent":true,"hide_header":true},"home":{"announcement":null,"category":true,"tag":true,"post_datetime":"updated"},"post":{"author_badge":{"enable":false,"level_badge":false,"custom_badge":["One","Two","Three"]},"word_count":{"wordcount":false,"min2read":false},"datetime_format":"YYYY-MM-DD HH:mm:ss","copyright_info":false,"share":false,"reward":{"enable":false,"img_link":null,"text":null}},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"obsidian"},"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true,"layout":"right"},"website_count":{"busuanzi_count":{"enable":true,"site_uv":true,"site_pv":true,"page_pv":true}},"local_search":{"enable":true,"preload":true},"comment":{"enable":true,"use":"giscus","valine":{"appid":null,"appkey":null,"server_urls":null,"placeholder":null},"gitalk":{"github_id":"chui359","github_admins":["chui359"],"repository":"gitalkMessage","client_id":"Ov23li2tEuYzh1o767qp","client_secret":"7176bd8821972c84fa6a6ea65fd4d71d345d4a8a","proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.36"},"waline":{"server_url":null,"reaction":false,"version":"3.2.1"},"giscus":{"repo":"chui359/gitalkMessage","repo_id":"R_kgDOMkQ00w","category":"Announcements","category_id":"DIC_kwDOMkQ0084Chter","reactions_enabled":true},"artalk":{"server":null},"disqus":{"shortname":null}},"rss":{"enable":false},"lazyload":{"enable":true},"cdn":{"enable":true,"provider":"cdnjs"},"pjax":{"enable":true},"footer":{"since":2024,"word_count":false,"site_deploy":{"enable":false,"provider":"github","url":null},"record":{"enable":false,"list":[{"code":null,"link":null}]}},"inject":{"enable":true,"css":[["/css/custom-1.css"]],"js":[null]},"root":"","source_data":{},"version":"4.2.5"}
+    KEEP.theme_config = {"base_info":{"primary_color":"#0066cc","title":"Cloudy's blog","author":"Cloudy","avatar":"/images/cloud.png","logo":"/images/cloud.png","favicon":"/images/cloud.png","mode":"light"},"menu":{"home":"/","archives":"/archives","tags":"/tags"},"first_screen":{"enable":false,"background_img":"/images/bg.svg","background_img_dark":"/images/bg.svg","description":"Keep writing and Keep loving.","hitokoto":false},"social_contact":{"enable":false,"links":{"github":null,"weixin":null,"qq":null,"weibo":null,"zhihu":null,"twitter":null,"x":null,"facebook":null,"email":null}},"scroll":{"progress_bar":false,"percent":true,"hide_header":true},"home":{"announcement":null,"category":true,"tag":true,"post_datetime":"updated"},"post":{"author_badge":{"enable":false,"level_badge":false,"custom_badge":["One","Two","Three"]},"word_count":{"wordcount":false,"min2read":false},"datetime_format":"YYYY-MM-DD HH:mm:ss","copyright_info":false,"share":false,"reward":{"enable":false,"img_link":null,"text":null}},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"obsidian"},"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true,"layout":"right"},"website_count":{"busuanzi_count":{"enable":true,"site_uv":true,"site_pv":true,"page_pv":true}},"local_search":{"enable":true,"preload":true},"comment":{"enable":true,"use":"giscus","valine":{"appid":null,"appkey":null,"server_urls":null,"placeholder":null},"gitalk":{"github_id":"chui359","github_admins":["chui359"],"repository":"gitalkMessage","client_id":"Ov23li2tEuYzh1o767qp","client_secret":"7176bd8821972c84fa6a6ea65fd4d71d345d4a8a","proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.36"},"waline":{"server_url":null,"reaction":false,"version":"3.2.1"},"giscus":{"repo":"chui359/gitalkMessage","repo_id":"R_kgDOMkQ00w","category":"Announcements","category_id":"DIC_kwDOMkQ0084Chter","reactions_enabled":true},"artalk":{"server":null},"disqus":{"shortname":null}},"rss":{"enable":false},"lazyload":{"enable":true},"cdn":{"enable":true,"provider":"cdnjs"},"pjax":{"enable":true},"footer":{"since":2024,"word_count":false,"site_deploy":{"enable":false,"provider":"github","url":null},"record":{"enable":false,"list":[{"code":null,"link":null}]}},"inject":{"enable":true,"css":[["/css/custom-1.css"]],"js":[null]},"root":"","source_data":{},"version":"4.2.5"}
     KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"}
     KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"}
     KEEP.language_copy_copyright = {"copy":"Copy copyright info","copied":"Copied","title":"Original post title","author":"Original post author","link":"Original post link"}
@@ -111,16 +111,6 @@
                             
                         </li>
                     
-                        
-                        <li class="menu-item flex-start border-box">
-                            <a class="menu-text-color border-box" href="/about">
-                                
-                                ABOUT
-                                
-                            </a>
-                            
-                        </li>
-                    
                     
                         <li class="menu-item search search-popup-trigger">
                             <i class="menu-text-color fas search fa-search"></i>
@@ -172,18 +162,6 @@
                         <a class="drawer-menu-text-color left-side flex-start border-box" href="/tags">
                             
                             TAGS
-                        </a>
-                        
-                    </label>
-                    
-                </li>
-            
-                
-                <li class="drawer-menu-item border-box not-sub-menu">
-                    <label class="drawer-menu-label border-box">
-                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/about">
-                            
-                            ABOUT
                         </a>
                         
                     </label>
@@ -246,7 +224,7 @@
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Thu Aug 14 2025 09:26:58 GMT+0800">2025-08-14 09:26:58</span>
+                    <span class="datetime" data-updated="Tue Aug 26 2025 18:00:24 GMT+0800">2025-08-26 18:00:24</span>
                 </span>
             
         
@@ -272,7 +250,7 @@
                             <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/LLM/">LLM</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/python/">python</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
                         
                     
                 </ul>
@@ -345,7 +323,7 @@
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/python/">python</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Python/">Python</a>
                                     </li>
                                 
                             </ul>
