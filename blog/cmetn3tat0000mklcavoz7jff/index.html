@@ -9,7 +9,7 @@
     
     <title>
         
-            FastAPI 專案設計最佳實踐：Service 分層、Interface 與 Response 包裝 |
+            Kubernetes Pod CPU 資源設定與 QOS 實務解析 |
         
         Cloudy&#39;s blog
     </title>
@@ -192,7 +192,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        FastAPI 專案設計最佳實踐：Service 分層、Interface 與 Response 包裝
+                        Kubernetes Pod CPU 資源設定與 QOS 實務解析
                     </div>
                 
 
@@ -218,13 +218,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-08-27 13:38:58</span>
+                <span class="datetime">2025-08-27 15:14:07</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Wed Aug 27 2025 13:42:47 GMT+0800">2025-08-27 13:42:47</span>
+                    <span class="datetime" data-updated="Wed Aug 27 2025 15:19:56 GMT+0800">2025-08-27 15:19:56</span>
                 </span>
             
         
@@ -233,7 +233,7 @@
             <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
                 <ul class="post-category-ul">
                     
-                            <li class="category-item"><a href="/categories/Python/">Python</a></li>
+                            <li class="category-item"><a href="/categories/Kubernetes/">Kubernetes</a></li>
                         
                     
                 </ul>
@@ -244,16 +244,13 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Kubernetes/">Kubernetes</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/FastAPI/">FastAPI</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/EKS/">EKS</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/OOP/">OOP</a></li>
-                        
-                    
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Interface/">Interface</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/QOS/">QOS</a></li>
                         
                     
                 </ul>
@@ -282,59 +279,59 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在使用 FastAPI 開發專案時，常常會遇到程式碼分層不清、回傳格式不一致，或是測試不易撰寫的問題。<br>本篇文章將整理以下幾個常見問題，並分享如何透過 <strong>OOP 思維</strong>、<strong>抽象依賴 (interface)</strong> 與 <strong>統一回應格式</strong> 來提升程式碼的可讀性、可維護性與擴充性。</p>
-<h2 id="問題"><a href="#問題" class="headerlink" title="問題"></a>問題</h2><ol>
-<li><p><strong>Service 與 API 層耦合</strong>  </p>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在部署微服務或雲端應用時，資源管理是確保系統穩定與高效運作的關鍵。Kubernetes（K8s）提供 CPU 與 Memory 的 request 及 limit 設定，搭配 QoS（Quality of Service）機制，協助我們分配、控制每個 Pod 的資源用量。本篇文章整理了在 EKS 架構下，如何正確理解與設定 CPU 的 limit，並說明若選擇不設 limit 會造成哪些影響，讓你能更有信心管理 K8s 資源。</p>
+<h2 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h2><h3 id="1-QoS-的意思與角色"><a href="#1-QoS-的意思與角色" class="headerlink" title="1. QoS 的意思與角色"></a>1. QoS 的意思與角色</h3><p><strong>QoS（Quality of Service）</strong>，原意是「服務品質」，在網路、系統領域用來描述資源分配、流量管理的策略，確保關鍵應用能夠維持最低效能標準。在 Kubernetes 中，QoS 主要用來管理 Pod 的 CPU 與 Memory 資源分配，幫助系統判斷哪些 Pod 應該優先保護或分配資源，哪些則可以在資源不足時被回收。</p>
+<p>Kubernetes 會根據每個 Pod 的資源 request 與 limit 設定，自動分級成三種 QoS 類型：</p>
+<h4 id="Kubernetes-的-QoS-分級說明"><a href="#Kubernetes-的-QoS-分級說明" class="headerlink" title="Kubernetes 的 QoS 分級說明"></a>Kubernetes 的 QoS 分級說明</h4><ol>
+<li><p><strong>Guaranteed（保證等級）</strong></p>
 <ul>
-<li>Service 直接回傳 dict 或 <code>BaseResponse</code>，導致難以在 CLI、排程等非 API 場景下重用。</li>
+<li>條件：Pod 內所有容器的 CPU 與 Memory request、limit 都有設定，而且 request 與 limit 數值完全相同。</li>
+<li>特點：資源獲得「最高保障」，最不容易被驅逐（evict），適合關鍵或需要穩定運作的服務。</li>
+<li>範例：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="attr">requests:</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">500m</span></span><br><span class="line">    <span class="attr">memory:</span> <span class="string">512Mi</span></span><br><span class="line">  <span class="attr">limits:</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">500m</span></span><br><span class="line">    <span class="attr">memory:</span> <span class="string">512Mi</span></span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
-<li><p><strong>回傳格式不一致</strong>  </p>
+<li><p><strong>Burstable（彈性等級）</strong></p>
 <ul>
-<li>有時回傳 dict，有時回傳 Pydantic Model，導致開發與除錯不方便。</li>
+<li>條件：Pod 內至少有一個 request &lt; limit，或只設定了 request 沒有 limit。</li>
+<li>特點：有最低資源保障（request），但可以彈性向上使用更多資源（limit），較容易被驅逐但比 BestEffort 有保障。</li>
+<li>實務上，大多數服務會歸在這一級。</li>
+<li>範例：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="attr">requests:</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">300m</span></span><br><span class="line">    <span class="attr">memory:</span> <span class="string">256Mi</span></span><br><span class="line">  <span class="attr">limits:</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">700m</span></span><br><span class="line">    <span class="attr">memory:</span> <span class="string">512Mi</span></span><br></pre></td></tr></table></figure>
+或只設定 request：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="attr">requests:</span></span><br><span class="line">    <span class="attr">cpu:</span> <span class="string">400m</span></span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
-<li><p><strong>測試困難</strong>  </p>
+<li><p><strong>BestEffort（盡力而為等級）</strong></p>
 <ul>
-<li>API 層直接依賴 <code>ProjectService</code>，無法輕易注入假實作 (Fake Service) 進行測試。</li>
-</ul>
-</li>
-<li><p><strong>可讀性不足</strong>  </p>
-<ul>
-<li>httpx 請求、錯誤處理、資料模型轉換混雜在同一個函式，程式碼較長且難以維護。</li>
+<li>條件：Pod 內所有容器都沒有設定 request 與 limit。</li>
+<li>特點：沒有任何資源保障，系統資源不足時，這類 Pod 最容易被回收或搶不到資源。</li>
+<li>範例：<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">resources:</span> &#123;&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 </ol>
-<h2 id="解決辦法"><a href="#解決辦法" class="headerlink" title="解決辦法"></a>解決辦法</h2><h3 id="1-建立抽象介面-Interface"><a href="#1-建立抽象介面-Interface" class="headerlink" title="1. 建立抽象介面 (Interface)"></a>1. 建立抽象介面 (Interface)</h3><p>使用 <code>ABC</code> 定義 <code>IProjectService</code>，讓 API 依賴抽象而非具體實作。<br>這樣可以：  </p>
-<ul>
-<li>減少耦合  </li>
-<li>方便替換不同實作 (真實服務 &#x2F; Mock &#x2F; Cached)  </li>
-<li>提升測試可行性</li>
+<h4 id="QoS-的界線與管理重點"><a href="#QoS-的界線與管理重點" class="headerlink" title="QoS 的界線與管理重點"></a>QoS 的界線與管理重點</h4><ul>
+<li><strong>Guaranteed &gt; Burstable &gt; BestEffort</strong><br>當資源壓力大時，K8s 會優先保護 Guaranteed Pod，其次是 Burstable，而 BestEffort 最容易被驅逐。</li>
+<li><strong>設定 request 與 limit</strong>，能讓你的服務在資源競爭時有較高優先權，降低不穩定的風險。</li>
+<li><strong>實務建議</strong>：關鍵服務建議設成 Guaranteed，彈性服務可用 Burstable，測試或非重要服務可用 BestEffort。</li>
 </ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> abc <span class="keyword">import</span> ABC, abstractmethod</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">IProjectService</span>(<span class="title class_ inherited__">ABC</span>):</span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_project</span>(<span class="params">self, user_name: <span class="built_in">str</span>, request: ProjectCreateRequest</span>) -&gt; ProjectCreateResponse:</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_project</span>(<span class="params">self, project_id: <span class="built_in">str</span>, user_name: <span class="built_in">str</span></span>) -&gt; ProjectCreateResponse:</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line"><span class="meta">    @abstractmethod</span></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">list_projects</span>(<span class="params">self, user_name: <span class="built_in">str</span></span>) -&gt; <span class="type">List</span>[ProjectCreateResponse]:</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-Service-專注於業務邏輯"><a href="#2-Service-專注於業務邏輯" class="headerlink" title="2. Service 專注於業務邏輯"></a>2. Service 專注於業務邏輯</h3><p>Service 負責與外部 API 溝通，並回傳 <strong>Domain Model</strong>，而不是直接包裝成 API Response。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ProjectService</span>(<span class="title class_ inherited__">IProjectService</span>):</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_project</span>(<span class="params">self, user_name: <span class="built_in">str</span>, request: ProjectCreateRequest</span>) -&gt; ProjectCreateResponse:</span><br><span class="line">        token = <span class="keyword">await</span> accountmw_get_jwt_token()</span><br><span class="line">        headers = &#123;<span class="string">&quot;Authorization&quot;</span>: <span class="string">f&quot;Bearer <span class="subst">&#123;token&#125;</span>&quot;</span>, <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/json&quot;</span>&#125;</span><br><span class="line">        payload = &#123;<span class="string">&quot;name&quot;</span>: request.name&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient() <span class="keyword">as</span> client:</span><br><span class="line">            response = <span class="keyword">await</span> client.post(PROJECT_API_URL, headers=headers, json=payload)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> response.status_code == <span class="number">201</span>:</span><br><span class="line">            result = response.json().get(<span class="string">&quot;result&quot;</span>, &#123;&#125;)</span><br><span class="line">            <span class="keyword">return</span> ProjectCreateResponse(</span><br><span class="line">                <span class="built_in">id</span>=result.get(<span class="string">&quot;projectId&quot;</span>),</span><br><span class="line">                name=result.get(<span class="string">&quot;projectName&quot;</span>),</span><br><span class="line">                pinned=result.get(<span class="string">&quot;pinned&quot;</span>, <span class="literal">False</span>),</span><br><span class="line">                createDate=result.get(<span class="string">&quot;createDate&quot;</span>, timestamp),</span><br><span class="line">                updateDate=result.get(<span class="string">&quot;updateDate&quot;</span>, timestamp),</span><br><span class="line">            )</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            error_respone(response)</span><br></pre></td></tr></table></figure>
-
-<h3 id="3-API-層包裝-BaseResponse"><a href="#3-API-層包裝-BaseResponse" class="headerlink" title="3. API 層包裝 BaseResponse"></a>3. API 層包裝 BaseResponse</h3><p>Router 的責任是將 <strong>Domain Model</strong> 轉成 <strong>標準回應格式</strong> (<code>BaseResponse</code>)，並定義 response_model。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@router.post(<span class="params"><span class="string">&quot;/project&quot;</span>, response_model=BaseResponse[ProjectCreateResponse]</span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_project</span>(<span class="params"></span></span><br><span class="line"><span class="params">    request: ProjectCreateRequest,</span></span><br><span class="line"><span class="params">    headers: AuthHeader = Depends(<span class="params">get_auth_headers</span>),</span></span><br><span class="line"><span class="params">    service: IProjectService = Depends(<span class="params">ProjectService</span>)</span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    project = <span class="keyword">await</span> service.create_project(headers.x_user_name, request)</span><br><span class="line">    <span class="keyword">return</span> BaseResponse[ProjectCreateResponse](</span><br><span class="line">        status=<span class="number">201</span>,</span><br><span class="line">        message=<span class="string">&quot;OK&quot;</span>,</span><br><span class="line">        result=project</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
-
-<p>這樣分工清楚：</p>
-<ul>
-<li>Service 專心處理資料</li>
-<li>API 統一處理回應格式</li>
+<h3 id="2-CPU-limit-與-request-的定義"><a href="#2-CPU-limit-與-request-的定義" class="headerlink" title="2. CPU limit 與 request 的定義"></a>2. CPU limit 與 request 的定義</h3><ul>
+<li><strong>request</strong>：Pod 啟動時向 K8s 申請的「最低保證資源」，例如 <code>cpu: 300m</code> 表示最少佔用 0.3 顆 CPU core。</li>
+<li><strong>limit</strong>：Pod 允許用到的「最高資源上限」，例如 <code>cpu: 700m</code> 表示最多用到 0.7 顆 CPU core。</li>
 </ul>
-<h3 id="4-測試更容易"><a href="#4-測試更容易" class="headerlink" title="4. 測試更容易"></a>4. 測試更容易</h3><p>因為 Router 依賴的是 <code>IProjectService</code>，我們可以替換成假實作：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FakeProjectService</span>(<span class="title class_ inherited__">IProjectService</span>):</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_project</span>(<span class="params">self, user_name, request</span>):</span><br><span class="line">        <span class="keyword">return</span> ProjectCreateResponse(</span><br><span class="line">            <span class="built_in">id</span>=<span class="string">&quot;fake-123&quot;</span>,</span><br><span class="line">            name=request.name,</span><br><span class="line">            pinned=<span class="literal">False</span>,</span><br><span class="line">            createDate=<span class="string">&quot;2025-01-01&quot;</span>,</span><br><span class="line">            updateDate=<span class="string">&quot;2025-01-01&quot;</span></span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
-
-<p>在測試時就不用打到真實 API，提高測試速度與穩定性。</p>
-<h2 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h2><ul>
-<li><strong>Interface</strong>：提升抽象層次，讓 API 依賴抽象而非實作。</li>
-<li><strong>Service</strong>：只回傳 Domain Model，專注在商業邏輯。</li>
-<li><strong>Router</strong>：負責統一回應格式，減少耦合。</li>
-<li><strong>測試</strong>：可透過 Fake Service 注入，提升測試可維護性。</li>
+<h3 id="3-limit-設定行為說明"><a href="#3-limit-設定行為說明" class="headerlink" title="3. limit 設定行為說明"></a>3. limit 設定行為說明</h3><ul>
+<li>若 Pod 設定 <code>limit: 700m</code>，則該 Pod 最高只能使用 700m 的 CPU（即 0.7 core），即使系統有剩餘也不會給它更多。</li>
+<li>若未設定 limit，Pod 可依 node 可用資源「暫時暴衝」使用，但可能造成 node 內其他 Pod 競爭，影響整體效能。</li>
 </ul>
-<p>這樣的設計方式能讓程式碼 <strong>簡潔、易讀、可測試</strong>，同時符合 <strong>物件導向與乾淨架構 (Clean Architecture)</strong> 的原則。</p>
+<h3 id="4-實務建議"><a href="#4-實務建議" class="headerlink" title="4. 實務建議"></a>4. 實務建議</h3><ul>
+<li>建議至少設定 request，讓 K8s 了解最低需求並安排合適 Node 部署。</li>
+<li>limit 是否要設，視服務特性決定：  <ul>
+<li>I&#x2F;O bound 服務多半不設 limit，讓峰值負載時可彈性使用資源。</li>
+<li>Critical、容易 OOM 的服務建議設 limit，避免資源被搶光導致整台 Node 不穩定。</li>
+</ul>
+</li>
+</ul>
+<h2 id="延伸閱讀"><a href="#延伸閱讀" class="headerlink" title="延伸閱讀"></a>延伸閱讀</h2><ul>
+<li><a class="link"   target="_blank" rel="noopener" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/" >Kubernetes 官方資源管理文件<i class="fas fa-external-link-alt"></i></a></li>
+<li><a class="link"   target="_blank" rel="noopener" href="https://docs.aws.amazon.com/eks/latest/userguide/resource-management.html" >EKS 實務操作經驗分享<i class="fas fa-external-link-alt"></i></a></li>
+</ul>
 
                     
                 </div>
@@ -347,19 +344,15 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Python/">Python</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Kubernetes/">Kubernetes</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/FastAPI/">FastAPI</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/EKS/">EKS</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/OOP/">OOP</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Interface/">Interface</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/QOS/">QOS</a>
                                     </li>
                                 
                             </ul>
@@ -375,31 +368,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cmetmfirf0000u8lc6f74332v/"
-                                   title="K8s 自動注入 Service 環境變數導致衝突問題整理"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">K8s 自動注入 Service 環境變數導致衝突問題整理</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmescd78l00006glcfix1aw1i/"
-                                   title="Python 列表置頂與排序案例詳解"
+                                   href="/blog/cmetmfirf0000u8lc6f74332v/"
+                                   title="K8s 自動注入 Service 環境變數導致衝突問題整理"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">Python 列表置頂與排序案例詳解</span>
+                                        <span class="post-nav-title-item text-ellipsis">K8s 自動注入 Service 環境變數導致衝突問題整理</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -528,7 +505,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B%E6%8A%BD%E8%B1%A1%E4%BB%8B%E9%9D%A2-Interface"><span class="nav-text">1. 建立抽象介面 (Interface)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Service-%E5%B0%88%E6%B3%A8%E6%96%BC%E6%A5%AD%E5%8B%99%E9%82%8F%E8%BC%AF"><span class="nav-text">2. Service 專注於業務邏輯</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-API-%E5%B1%A4%E5%8C%85%E8%A3%9D-BaseResponse"><span class="nav-text">3. API 層包裝 BaseResponse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%B8%AC%E8%A9%A6%E6%9B%B4%E5%AE%B9%E6%98%93"><span class="nav-text">4. 測試更容易</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B8%BD%E7%B5%90"><span class="nav-text">總結</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%B4%B9"><span class="nav-text">介紹</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-QoS-%E7%9A%84%E6%84%8F%E6%80%9D%E8%88%87%E8%A7%92%E8%89%B2"><span class="nav-text">1. QoS 的意思與角色</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Kubernetes-%E7%9A%84-QoS-%E5%88%86%E7%B4%9A%E8%AA%AA%E6%98%8E"><span class="nav-text">Kubernetes 的 QoS 分級說明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QoS-%E7%9A%84%E7%95%8C%E7%B7%9A%E8%88%87%E7%AE%A1%E7%90%86%E9%87%8D%E9%BB%9E"><span class="nav-text">QoS 的界線與管理重點</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-CPU-limit-%E8%88%87-request-%E7%9A%84%E5%AE%9A%E7%BE%A9"><span class="nav-text">2. CPU limit 與 request 的定義</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-limit-%E8%A8%AD%E5%AE%9A%E8%A1%8C%E7%82%BA%E8%AA%AA%E6%98%8E"><span class="nav-text">3. limit 設定行為說明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AF%A6%E5%8B%99%E5%BB%BA%E8%AD%B0"><span class="nav-text">4. 實務建議</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80"><span class="nav-text">延伸閱讀</span></a></li></ol>
     </div>
 </div>
 
@@ -711,7 +688,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C"><span class="nav-text">問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E8%BE%A6%E6%B3%95"><span class="nav-text">解決辦法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B%E6%8A%BD%E8%B1%A1%E4%BB%8B%E9%9D%A2-Interface"><span class="nav-text">1. 建立抽象介面 (Interface)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Service-%E5%B0%88%E6%B3%A8%E6%96%BC%E6%A5%AD%E5%8B%99%E9%82%8F%E8%BC%AF"><span class="nav-text">2. Service 專注於業務邏輯</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-API-%E5%B1%A4%E5%8C%85%E8%A3%9D-BaseResponse"><span class="nav-text">3. API 層包裝 BaseResponse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%B8%AC%E8%A9%A6%E6%9B%B4%E5%AE%B9%E6%98%93"><span class="nav-text">4. 測試更容易</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B8%BD%E7%B5%90"><span class="nav-text">總結</span></a></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%B4%B9"><span class="nav-text">介紹</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-QoS-%E7%9A%84%E6%84%8F%E6%80%9D%E8%88%87%E8%A7%92%E8%89%B2"><span class="nav-text">1. QoS 的意思與角色</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Kubernetes-%E7%9A%84-QoS-%E5%88%86%E7%B4%9A%E8%AA%AA%E6%98%8E"><span class="nav-text">Kubernetes 的 QoS 分級說明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QoS-%E7%9A%84%E7%95%8C%E7%B7%9A%E8%88%87%E7%AE%A1%E7%90%86%E9%87%8D%E9%BB%9E"><span class="nav-text">QoS 的界線與管理重點</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-CPU-limit-%E8%88%87-request-%E7%9A%84%E5%AE%9A%E7%BE%A9"><span class="nav-text">2. CPU limit 與 request 的定義</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-limit-%E8%A8%AD%E5%AE%9A%E8%A1%8C%E7%82%BA%E8%AA%AA%E6%98%8E"><span class="nav-text">3. limit 設定行為說明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%AF%A6%E5%8B%99%E5%BB%BA%E8%AD%B0"><span class="nav-text">4. 實務建議</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80"><span class="nav-text">延伸閱讀</span></a></li></ol>
     </div>
 </div>
 
