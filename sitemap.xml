@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://cloudy-blog.netlify.app/blog/cmfkqvo9v0000vglcfouhfda7/</loc>
+    <loc>https://cloudy-blog.netlify.app/blog/cmfdprowb000064lc9wydeb7g/</loc>
     
     <lastmod>2025-09-15</lastmod>
     
@@ -11,9 +11,18 @@
   </url>
   
   <url>
-    <loc>https://cloudy-blog.netlify.app/blog/cmfdprowb000064lc9wydeb7g/</loc>
+    <loc>https://cloudy-blog.netlify.app/blog/cmfkxvgb70000mclcdk2e9p8z/</loc>
     
-    <lastmod>2025-09-10</lastmod>
+    <lastmod>2025-09-15</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/blog/cmfkqvo9v0000vglcfouhfda7/</loc>
+    
+    <lastmod>2025-09-15</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -454,6 +463,13 @@
   
   <url>
     <loc>https://cloudy-blog.netlify.app/tags/Exception-Handling/</loc>
+    <lastmod>2025-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://cloudy-blog.netlify.app/tags/Docker/</loc>
     <lastmod>2025-09-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

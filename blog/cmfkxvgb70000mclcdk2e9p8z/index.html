@@ -9,7 +9,7 @@
     
     <title>
         
-            Python 分層架構下的錯誤回應設計與分工整理 |
+            Docker debugpy 路徑映射與斷點問題排查 |
         
         Cloudy&#39;s blog
     </title>
@@ -192,7 +192,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        Python 分層架構下的錯誤回應設計與分工整理
+                        Docker debugpy 路徑映射與斷點問題排查
                     </div>
                 
 
@@ -218,13 +218,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-09-15 14:29:04</span>
+                <span class="datetime">2025-09-15 17:44:52</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Mon Sep 15 2025 14:31:11 GMT+0800">2025-09-15 14:31:11</span>
+                    <span class="datetime" data-updated="Mon Sep 15 2025 17:45:44 GMT+0800">2025-09-15 17:45:44</span>
                 </span>
             
         
@@ -247,7 +247,10 @@
                             <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Exception-Handling/">Exception Handling</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/debugpy/">debugpy</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Docker/">Docker</a></li>
                         
                     
                 </ul>
@@ -276,43 +279,67 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>近期在專案中遇到 API 權限錯誤與資料存取錯誤的處理問題，為了確保分工明確，特別釐清 Service 層與 Repository 層的責任界線。本篇將分享思考脈絡、最佳實踐與具體範例，協助讀者建立清晰的錯誤回應設計。</p>
-<h2 id="處理問題"><a href="#處理問題" class="headerlink" title="處理問題"></a>處理問題</h2><p>主要目標：</p>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>當用 VS Code 連接（attach）到 Docker 容器內的 Python 程式（使用 debugpy）時，遇到「breakpoint in file that does not exist」錯誤的調查與解決方法。</p>
+<h2 id="問題描述"><a href="#問題描述" class="headerlink" title="問題描述"></a>問題描述</h2><p><strong>情境描述：</strong></p>
+<p>用 VS Code 設定斷點，但 attach 到 Docker 容器時，斷點沒有生效，且出現「breakpoint in file that does not exist」的提示。</p>
+<p><strong>主要原因：</strong></p>
+<p>通常是 VS Code 的 pathMappings 沒有正確對應本地檔案和容器內的實際路徑，或 mapping 的順序設錯，導致覆蓋了正確的設定。</p>
+<h2 id="處理步驟"><a href="#處理步驟" class="headerlink" title="處理步驟"></a>處理步驟</h2><h3 id="1-確認容器內的檔案路徑"><a href="#1-確認容器內的檔案路徑" class="headerlink" title="1. 確認容器內的檔案路徑"></a>1. 確認容器內的檔案路徑</h3><p>用下列指令查看容器內檔案實際位置（以模擬專案為例）：</p>
 <ul>
-<li>明確區分 Service 層和 Repository 層的職責。</li>
-<li>針對 API 權限、連線等錯誤，設計適當的錯誤拋回與處理機制。</li>
-<li>強化程式碼可維護性與擴充性，避免錯誤訊息被遮蔽或誤判。</li>
+<li><p>列出容器內專案所有檔案：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker-compose <span class="built_in">exec</span> app <span class="built_in">ls</span> -R /app</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查詢特定 Python 模組的實際路徑：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker-compose <span class="built_in">exec</span> app python -c <span class="string">&quot;import inspect, mymodule; print(inspect.getsourcefile(mymodule))&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>  （這裡 mymodule 代表你的 Python 檔案名稱）</p>
+</li>
 </ul>
-<p>處理辦法：</p>
+<p><strong>常見容器內路徑舉例：</strong></p>
 <ul>
-<li>Repository 層只負責資料存取與拋出明確 Exception，不包業務邏輯。</li>
-<li>Service 層負責捕捉錯誤，根據業務需求做適當處理與回應。</li>
-<li>透過自訂 Exception 類別，讓錯誤情境更清晰可追蹤。</li>
+<li>&#x2F;app&#x2F;myproject&#x2F;main.py</li>
+<li>&#x2F;app&#x2F;myproject&#x2F;worker&#x2F;manager.py</li>
+<li>&#x2F;app&#x2F;libs&#x2F;utils&#x2F;helper.py</li>
 </ul>
-<h2 id="處理過程"><a href="#處理過程" class="headerlink" title="處理過程"></a>處理過程</h2><h3 id="1-分層責任釐清"><a href="#1-分層責任釐清" class="headerlink" title="1. 分層責任釐清"></a>1. 分層責任釐清</h3><ul>
-<li><strong>Repository 層</strong>：存取資料來源（如 DB、API），出現權限、連線、資料錯誤時，需拋出明確 Exception，不直接回傳 None 或包裝為業務邏輯。</li>
-<li><strong>Service 層</strong>：負責業務流程與錯誤處理，根據錯誤型態決定如何回應（如回傳 HTTP 狀態碼、錯誤訊息等）。</li>
-</ul>
-<h3 id="2-自訂-Exception-類別"><a href="#2-自訂-Exception-類別" class="headerlink" title="2. 自訂 Exception 類別"></a>2. 自訂 Exception 類別</h3><p>建議針對不同錯誤類型建立 Exception 類別，例如：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ApiPermissionException</span>(<span class="title class_ inherited__">Exception</span>):</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ApiDataAccessException</span>(<span class="title class_ inherited__">Exception</span>):</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ApiConnectionException</span>(<span class="title class_ inherited__">Exception</span>):</span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="3-Repository-層錯誤拋回實作"><a href="#3-Repository-層錯誤拋回實作" class="headerlink" title="3. Repository 層錯誤拋回實作"></a>3. Repository 層錯誤拋回實作</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ProjectRepository</span>(<span class="title class_ inherited__">IProjectRepository</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, db: Session</span>):</span><br><span class="line">        <span class="variable language_">self</span>.db = db</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">project_list</span>(<span class="params">self, token: <span class="built_in">str</span>, user_name: <span class="built_in">str</span>, project_id: <span class="type">Optional</span>[<span class="built_in">int</span>] = <span class="literal">None</span></span>) -&gt; <span class="type">List</span>[ProjectListBase]:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            PROJECT_API_URL = <span class="string">f&quot;<span class="subst">&#123;BASE_API_URL&#125;</span>/api/v1/project?projectId=<span class="subst">&#123;project_id&#125;</span>&quot;</span> <span class="keyword">if</span> project_id <span class="keyword">else</span> <span class="string">f&quot;<span class="subst">&#123;BASE_API_URL&#125;</span>/api/v1/project&quot;</span></span><br><span class="line">            <span class="keyword">async</span> <span class="keyword">with</span> httpx.AsyncClient() <span class="keyword">as</span> client:</span><br><span class="line">                headers = &#123;</span><br><span class="line">                    <span class="string">&quot;Authorization&quot;</span>: <span class="string">f&quot;Bearer <span class="subst">&#123;token&#125;</span>&quot;</span>,</span><br><span class="line">                    <span class="string">&quot;x-request-user&quot;</span>: user_name</span><br><span class="line">                &#125;</span><br><span class="line">                response = <span class="keyword">await</span> client.get(PROJECT_API_URL, headers=headers, timeout=<span class="number">20.0</span>)</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> response.status_code == <span class="number">401</span> <span class="keyword">or</span> response.status_code == <span class="number">403</span>:</span><br><span class="line">                    <span class="keyword">raise</span> ApiPermissionException(<span class="string">&quot;API 權限不足&quot;</span>)</span><br><span class="line">                <span class="keyword">elif</span> response.status_code != <span class="number">200</span>:</span><br><span class="line">                    <span class="keyword">raise</span> ApiDataAccessException(<span class="string">f&quot;API 回傳錯誤: <span class="subst">&#123;response.status_code&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> response.json().get(<span class="string">&quot;result&quot;</span>, &#123;&#125;).get(<span class="string">&quot;data&quot;</span>, [])</span><br><span class="line">        <span class="keyword">except</span> httpx.RequestError <span class="keyword">as</span> e:</span><br><span class="line">            <span class="keyword">raise</span> ApiConnectionException(<span class="built_in">str</span>(e))</span><br></pre></td></tr></table></figure>
-
-<h3 id="4-Service-層錯誤捕捉與業務回應"><a href="#4-Service-層錯誤捕捉與業務回應" class="headerlink" title="4. Service 層錯誤捕捉與業務回應"></a>4. Service 層錯誤捕捉與業務回應</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">project_list</span>(<span class="params">self, name: <span class="built_in">str</span>, sortKey: <span class="built_in">str</span>, sortScend: <span class="built_in">str</span>, token: <span class="built_in">str</span>, user_name: <span class="built_in">str</span></span>) -&gt; ProjectListResponse:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        result_data = <span class="keyword">await</span> <span class="variable language_">self</span>.repository.project_list(token, user_name)</span><br><span class="line">        <span class="comment"># ...篩選、排序邏輯...</span></span><br><span class="line">        <span class="keyword">return</span> ProjectListResponse(</span><br><span class="line">            projectList=final_project_list,</span><br><span class="line">            projectCount=<span class="built_in">len</span>(final_project_list),</span><br><span class="line">            sortKey=sortKey,</span><br><span class="line">            sortScend=sortScend</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">except</span> ApiPermissionException:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">403</span>, detail=<span class="string">&quot;使用者權限不足&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span> ApiDataAccessException <span class="keyword">as</span> ex:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">502</span>, detail=<span class="built_in">str</span>(ex))</span><br><span class="line">    <span class="keyword">except</span> ApiConnectionException <span class="keyword">as</span> ex:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">504</span>, detail=<span class="string">&quot;API 連線失敗&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<h3 id="5-實作注意事項"><a href="#5-實作注意事項" class="headerlink" title="5. 實作注意事項"></a>5. 實作注意事項</h3><ul>
-<li>不要在 Repository 層包業務邏輯（如判斷權限或回傳業務用錯誤訊息）。</li>
-<li>保持 Exception 類別語意明確，便於追蹤與擴充。</li>
-<li>Service 層可根據錯誤型態，彈性回應前端或進行 log 記錄。</li>
-</ul>
-<blockquote>
-<p><strong>備註</strong>：  </p>
+<h3 id="2-設定-VS-Code-的-pathMappings"><a href="#2-設定-VS-Code-的-pathMappings" class="headerlink" title="2. 設定 VS Code 的 pathMappings"></a>2. 設定 VS Code 的 pathMappings</h3><p><strong>觀念說明：</strong></p>
 <ul>
-<li>若有更多層次（如 Handler、Controller），可繼續往上包裝 Exception。</li>
-<li>可依據專案規模，調整 Exception 類別細膩度。</li>
-<li>本篇範例以 Python FastAPI 為基礎，如使用其他框架亦可參考此分層邏輯。</li>
+<li><code>localRoot</code>：你電腦上實際儲存檔案的資料夾</li>
+<li><code>remoteRoot</code>：容器內 debugpy 報告的路徑</li>
 </ul>
-</blockquote>
+<p><strong>重點：</strong></p>
+<p>越具體的 mapping 要放前面，最後才是全部 fallback。</p>
+<p><strong>範例設定：</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Python: Attach (Docker debugpy)&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;python&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;request&quot;</span><span class="punctuation">:</span> <span class="string">&quot;attach&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;connect&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;host&quot;</span><span class="punctuation">:</span> <span class="string">&quot;localhost&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">5678</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;pathMappings&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;localRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;workspaceFolder&#125;/myproject&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;remoteRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/app/myproject&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;localRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;workspaceFolder&#125;/libs&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;remoteRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/app/libs&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;localRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;workspaceFolder&#125;&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;remoteRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/app&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-驗證設定"><a href="#3-驗證設定" class="headerlink" title="3. 驗證設定"></a>3. 驗證設定</h3><ul>
+<li><p>重新啟動容器：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker-compose up --build -d app</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>再用上面的 <code>inspect</code> 指令查看模組路徑，確認和 pathMappings 設定一致。</p>
+</li>
+<li><p>在 VS Code 選擇 “Python: Attach (Docker debugpy)”，嘗試下斷點，檢查是否能命中。</p>
+</li>
+</ul>
+<h2 id="範例說明"><a href="#範例說明" class="headerlink" title="範例說明"></a>範例說明</h2><p><strong>假設檔案結構如下：</strong></p>
+<ul>
+<li><a class="link"   target="_blank" rel="noopener" href="http://manager.py/" >manager.py<i class="fas fa-external-link-alt"></i></a>（容器內路徑）：&#x2F;app&#x2F;myproject&#x2F;worker&#x2F;manager.py</li>
+<li><a class="link"   target="_blank" rel="noopener" href="http://manager.py/" >manager.py<i class="fas fa-external-link-alt"></i></a>（本地路徑）：C:\Users\你的位置\myproject\worker[manager.py](<a class="link"   target="_blank" rel="noopener" href="http://manager.py/" >http://manager.py/<i class="fas fa-external-link-alt"></i></a>)</li>
+</ul>
+<p>對應 mapping：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;localRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;workspaceFolder&#125;/myproject&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;remoteRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/app/myproject&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><a class="link"   target="_blank" rel="noopener" href="http://helper.py/" >helper.py<i class="fas fa-external-link-alt"></i></a>（容器內）：&#x2F;app&#x2F;libs&#x2F;utils&#x2F;helper.py</li>
+<li><a class="link"   target="_blank" rel="noopener" href="http://helper.py/" >helper.py<i class="fas fa-external-link-alt"></i></a>（本地）：C:\Users\你的位置\libs\utils[helper.py](<a class="link"   target="_blank" rel="noopener" href="http://helper.py/" >http://helper.py/<i class="fas fa-external-link-alt"></i></a>)</li>
+</ul>
+<p>對應 mapping：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;localRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;workspaceFolder&#125;/libs&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;remoteRoot&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/app/libs&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="常見問題與建議"><a href="#常見問題與建議" class="headerlink" title="常見問題與建議"></a>常見問題與建議</h2><ul>
+<li>如果還是出現“file does not exist”，請複製 debug console 顯示的 remote path，檢查 pathMappings 是否正確對應。</li>
+<li>如果容器內 PYTHONPATH 或 sys.path 有更動，請用 <code>python -c &quot;import sys; print(sys.path)&quot;</code> 檢查。</li>
+<li>專案結構建議統一，方便維護與設定 mapping。</li>
+</ul>
+<h2 id="結語"><a href="#結語" class="headerlink" title="結語"></a>結語</h2><p>依照以上步驟檢查並調整設定後，VS Code 應能正確連結你本地的檔案與容器內的程式碼，確保斷點可正常命中。如果需要進一步協助，請提供 debugpy 顯示的 remote 路徑，我可以協助你調整 launch.json 設定。</p>
 
                     
                 </div>
@@ -329,7 +356,11 @@
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Exception-Handling/">Exception Handling</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/debugpy/">debugpy</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Docker/">Docker</a>
                                     </li>
                                 
                             </ul>
@@ -345,31 +376,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cmfkxvgb70000mclcdk2e9p8z/"
-                                   title="Docker debugpy 路徑映射與斷點問題排查"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">Docker debugpy 路徑映射與斷點問題排查</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmfdprowb000064lc9wydeb7g/"
-                                   title="使用 debugpy 搭配 Docker Compose 在 VSCode 快速除錯"
+                                   href="/blog/cmfkqvo9v0000vglcfouhfda7/"
+                                   title="Python 分層架構下的錯誤回應設計與分工整理"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">使用 debugpy 搭配 Docker Compose 在 VSCode 快速除錯</span>
+                                        <span class="post-nav-title-item text-ellipsis">Python 分層架構下的錯誤回應設計與分工整理</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -498,7 +513,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%88%86%E5%B1%A4%E8%B2%AC%E4%BB%BB%E9%87%90%E6%B8%85"><span class="nav-text">1. 分層責任釐清</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%87%AA%E8%A8%82-Exception-%E9%A1%9E%E5%88%A5"><span class="nav-text">2. 自訂 Exception 類別</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Repository-%E5%B1%A4%E9%8C%AF%E8%AA%A4%E6%8B%8B%E5%9B%9E%E5%AF%A6%E4%BD%9C"><span class="nav-text">3. Repository 層錯誤拋回實作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Service-%E5%B1%A4%E9%8C%AF%E8%AA%A4%E6%8D%95%E6%8D%89%E8%88%87%E6%A5%AD%E5%8B%99%E5%9B%9E%E6%87%89"><span class="nav-text">4. Service 層錯誤捕捉與業務回應</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%AF%A6%E4%BD%9C%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><span class="nav-text">5. 實作注意事項</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C%E6%8F%8F%E8%BF%B0"><span class="nav-text">問題描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E6%AD%A5%E9%A9%9F"><span class="nav-text">處理步驟</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%A2%BA%E8%AA%8D%E5%AE%B9%E5%99%A8%E5%85%A7%E7%9A%84%E6%AA%94%E6%A1%88%E8%B7%AF%E5%BE%91"><span class="nav-text">1. 確認容器內的檔案路徑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%A8%AD%E5%AE%9A-VS-Code-%E7%9A%84-pathMappings"><span class="nav-text">2. 設定 VS Code 的 pathMappings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%A9%97%E8%AD%89%E8%A8%AD%E5%AE%9A"><span class="nav-text">3. 驗證設定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E8%AA%AA%E6%98%8E"><span class="nav-text">範例說明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C%E8%88%87%E5%BB%BA%E8%AD%B0"><span class="nav-text">常見問題與建議</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AA%9E"><span class="nav-text">結語</span></a></li></ol>
     </div>
 </div>
 
@@ -681,7 +696,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%88%86%E5%B1%A4%E8%B2%AC%E4%BB%BB%E9%87%90%E6%B8%85"><span class="nav-text">1. 分層責任釐清</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%87%AA%E8%A8%82-Exception-%E9%A1%9E%E5%88%A5"><span class="nav-text">2. 自訂 Exception 類別</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Repository-%E5%B1%A4%E9%8C%AF%E8%AA%A4%E6%8B%8B%E5%9B%9E%E5%AF%A6%E4%BD%9C"><span class="nav-text">3. Repository 層錯誤拋回實作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Service-%E5%B1%A4%E9%8C%AF%E8%AA%A4%E6%8D%95%E6%8D%89%E8%88%87%E6%A5%AD%E5%8B%99%E5%9B%9E%E6%87%89"><span class="nav-text">4. Service 層錯誤捕捉與業務回應</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E5%AF%A6%E4%BD%9C%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><span class="nav-text">5. 實作注意事項</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C%E6%8F%8F%E8%BF%B0"><span class="nav-text">問題描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E6%AD%A5%E9%A9%9F"><span class="nav-text">處理步驟</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%A2%BA%E8%AA%8D%E5%AE%B9%E5%99%A8%E5%85%A7%E7%9A%84%E6%AA%94%E6%A1%88%E8%B7%AF%E5%BE%91"><span class="nav-text">1. 確認容器內的檔案路徑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E8%A8%AD%E5%AE%9A-VS-Code-%E7%9A%84-pathMappings"><span class="nav-text">2. 設定 VS Code 的 pathMappings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E9%A9%97%E8%AD%89%E8%A8%AD%E5%AE%9A"><span class="nav-text">3. 驗證設定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E8%AA%AA%E6%98%8E"><span class="nav-text">範例說明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C%E8%88%87%E5%BB%BA%E8%AD%B0"><span class="nav-text">常見問題與建議</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AA%9E"><span class="nav-text">結語</span></a></li></ol>
     </div>
 </div>
 
