@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="Cloudy">
+    
+    <title>
+        
+            Python 服務依賴延遲初始化優化 - 使用 @property 實現按需載入 |
+        
+        Cloudy&#39;s blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+        <link rel="shortcut icon" href="/images/cloud.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/regular.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/solid.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/font/css/brands.min.css">
+    
+        
+            
+                
+<link rel="stylesheet" href="/css/custom-1.css">
+
+            
+        
+    
+    <script class="keep-theme-configurations">
+    const KEEP = window.KEEP || {}
+    KEEP.hexo_config = {"hostname":"cloudy-blog.netlify.app","root":"/","language":"en","path":"search.json"}
+    KEEP.theme_config = {"base_info":{"primary_color":"#0066cc","title":"Cloudy's blog","author":"Cloudy","avatar":"/images/cloud.png","logo":"/images/cloud.png","favicon":"/images/cloud.png","mode":"light"},"menu":{"home":"/","archives":"/archives","tags":"/tags"},"first_screen":{"enable":false,"background_img":"/images/bg.svg","background_img_dark":"/images/bg.svg","description":"Keep writing and Keep loving.","hitokoto":false},"social_contact":{"enable":false,"links":{"github":null,"weixin":null,"qq":null,"weibo":null,"zhihu":null,"twitter":null,"x":null,"facebook":null,"email":null}},"scroll":{"progress_bar":false,"percent":true,"hide_header":true},"home":{"announcement":null,"category":true,"tag":true,"post_datetime":"updated"},"post":{"author_badge":{"enable":false,"level_badge":false,"custom_badge":["One","Two","Three"]},"word_count":{"wordcount":false,"min2read":false},"datetime_format":"YYYY-MM-DD HH:mm:ss","copyright_info":false,"share":false,"reward":{"enable":false,"img_link":null,"text":null}},"code_block":{"tools":{"enable":true,"style":"default"},"highlight_theme":"obsidian"},"toc":{"enable":true,"number":false,"expand_all":true,"init_open":true,"layout":"right"},"website_count":{"busuanzi_count":{"enable":true,"site_uv":true,"site_pv":true,"page_pv":true}},"local_search":{"enable":true,"preload":true},"comment":{"enable":true,"use":"giscus","valine":{"appid":null,"appkey":null,"server_urls":null,"placeholder":null},"gitalk":{"github_id":"chui359","github_admins":["chui359"],"repository":"gitalkMessage","client_id":"Ov23li2tEuYzh1o767qp","client_secret":"7176bd8821972c84fa6a6ea65fd4d71d345d4a8a","proxy":null},"twikoo":{"env_id":null,"region":null,"version":"1.6.36"},"waline":{"server_url":null,"reaction":false,"version":"3.2.1"},"giscus":{"repo":"chui359/gitalkMessage","repo_id":"R_kgDOMkQ00w","category":"Announcements","category_id":"DIC_kwDOMkQ0084Chter","reactions_enabled":true},"artalk":{"server":null},"disqus":{"shortname":null}},"rss":{"enable":false},"lazyload":{"enable":true},"cdn":{"enable":true,"provider":"cdnjs"},"pjax":{"enable":true},"footer":{"since":2024,"word_count":false,"site_deploy":{"enable":false,"provider":"github","url":null},"record":{"enable":false,"list":[{"code":null,"link":null}]}},"inject":{"enable":true,"css":[["/css/custom-1.css"]],"js":[null]},"root":"","source_data":{},"version":"4.2.5"}
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"}
+    KEEP.language_code_block = {"copy":"Copy code","copied":"Copied","fold":"Fold code block","folded":"Folded"}
+    KEEP.language_copy_copyright = {"copy":"Copy copyright info","copied":"Copied","title":"Original post title","author":"Original post author","link":"Original post link"}
+  </script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <i class="pjax-progress-icon fas fa-circle-notch fa-spin"></i>
+    
+</div>
+
+
+
+<main class="page-container border-box">
+    <!-- home first screen  -->
+    
+
+    <!-- page content -->
+    <div class="page-main-content border-box">
+        <div class="page-main-content-top">
+            
+<header class="header-wrapper">
+
+    <div class="border-box header-content">
+        <div class="left flex-start border-box">
+            
+                <a class="logo-image border-box" href="/">
+                    <img src="/images/cloud.png">
+                </a>
+            
+            <a class="site-name border-box" href="/">
+               Cloudy&#39;s blog
+            </a>
+        </div>
+
+        <div class="right border-box">
+            <div class="pc border-box">
+                <ul class="menu-list border-box">
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/">
+                                
+                                HOME
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/archives">
+                                
+                                ARCHIVES
+                                
+                            </a>
+                            
+                        </li>
+                    
+                        
+                        <li class="menu-item flex-start border-box">
+                            <a class="menu-text-color border-box" href="/tags">
+                                
+                                TAGS
+                                
+                            </a>
+                            
+                        </li>
+                    
+                    
+                        <li class="menu-item search search-popup-trigger">
+                            <i class="menu-text-color fas search fa-search"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <div class="mobile border-box flex-start">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fas fa-search"></i></div>
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list border-box">
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/">
+                            
+                            HOME
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/archives">
+                            
+                            ARCHIVES
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+                
+                <li class="drawer-menu-item border-box not-sub-menu">
+                    <label class="drawer-menu-label border-box">
+                        <a class="drawer-menu-text-color left-side flex-start border-box" href="/tags">
+                            
+                            TAGS
+                        </a>
+                        
+                    </label>
+                    
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle border-box">
+
+            <div class="main-content border-box">
+                
+
+                    
+<div class="fade-in-down-animation">
+    <div class="post-page-container border-box">
+        <div class="post-content-container border-box">
+            
+
+            <div class="post-content-bottom border-box">
+                
+                    <div class="post-title">
+                        Python 服務依賴延遲初始化優化 - 使用 @property 實現按需載入
+                    </div>
+                
+
+                
+                    <div class="post-header border-box">
+                        
+                            <div class="avatar-box border-box">
+                                <img src="/images/cloud.png">
+                            </div>
+                        
+                        <div class="info-box">
+                            <div class="author border-box">
+                                <span class="name">Cloudy</span>
+                                
+                            </div>
+                            <div class="meta-info border-box">
+                                
+
+<div class="post-meta-info-container border-box post">
+    <div class="post-meta-info border-box">
+        
+
+        
+            <span class="meta-info-item post-create-date">
+                <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
+                <span class="datetime">2025-09-17 11:02:29</span>
+            </span>
+
+            
+                <span class="meta-info-item post-update-date">
+                    <i class="icon fa-solid fa-file-pen"></i>&nbsp;
+                    <span class="datetime" data-updated="Wed Sep 17 2025 11:03:31 GMT+0800">2025-09-17 11:03:31</span>
+                </span>
+            
+        
+
+        
+            <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
+                <ul class="post-category-ul">
+                    
+                            <li class="category-item"><a href="/categories/Python/">Python</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+            <span class="post-tag meta-info-item border-box">
+                <ul class="post-tag-ul">
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
+                        
+                    
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/property/">property</a></li>
+                        
+                    
+                </ul>
+            </span>
+        
+
+        
+        
+        
+        
+            <span class="meta-info-item post-pv">
+                <i class="icon fas fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+            </span>
+        
+    </div>
+
+    
+</div>
+
+                            </div>
+                        </div>
+                    </div>
+                
+
+                <div class="post-content keep-markdown-body ">
+                    
+
+                    
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在開發 Web 應用程式時，經常會遇到服務層需要注入多個依賴（如 Repository、Client 等）的情況。傳統的做法是在服務初始化時就創建所有依賴物件，但這會導致即使某些請求不需要使用到特定依賴，也會無謂地消耗記憶體和初始化時間。本文將介紹如何使用 Python 的 <code>@property</code> 裝飾器實現延遲初始化，優化服務依賴管理。</p>
+<h2 id="處理問題"><a href="#處理問題" class="headerlink" title="處理問題"></a>處理問題</h2><h3 id="原始問題"><a href="#原始問題" class="headerlink" title="原始問題"></a>原始問題</h3><p>在 Web 服務中，依賴注入函數會無條件創建所有依賴物件：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_user_service</span>() -&gt; IUserService:</span><br><span class="line">    repository = UserRepository()  <span class="comment"># 總是被創建，即使不需要</span></span><br><span class="line">    email_client = EmailClient()</span><br><span class="line">    <span class="keyword">return</span> UserService(repository=repository, email_client=email_client)</span><br></pre></td></tr></table></figure>
+
+<h3 id="問題分析"><a href="#問題分析" class="headerlink" title="問題分析"></a>問題分析</h3><ul>
+<li><strong>效能浪費</strong>：不需要資料庫操作的請求也會創建 Repository</li>
+<li><strong>記憶體消耗</strong>：無謂的物件創建增加記憶體使用</li>
+<li><strong>初始化成本</strong>：每次請求都要初始化所有依賴</li>
+</ul>
+<h3 id="解決目標"><a href="#解決目標" class="headerlink" title="解決目標"></a>解決目標</h3><p>實現按需載入機制，只在真正需要使用依賴時才創建對應物件。</p>
+<h2 id="處理過程"><a href="#處理過程" class="headerlink" title="處理過程"></a>處理過程</h2><h3 id="步驟-1：修改依賴注入函數"><a href="#步驟-1：修改依賴注入函數" class="headerlink" title="步驟 1：修改依賴注入函數"></a>步驟 1：修改依賴注入函數</h3><p>將原本直接創建依賴的方式改為傳入 <code>None</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修改前</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_user_service</span>() -&gt; IUserService:</span><br><span class="line">    repository = UserRepository()</span><br><span class="line">    email_client = EmailClient()</span><br><span class="line">    <span class="keyword">return</span> UserService(repository=repository, email_client=email_client)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改後</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_user_service</span>() -&gt; IUserService:</span><br><span class="line">    email_client = EmailClient()</span><br><span class="line">    <span class="keyword">return</span> UserService(repository=<span class="literal">None</span>, email_client=email_client)</span><br></pre></td></tr></table></figure>
+
+<h3 id="步驟-2：調整服務類別建構子"><a href="#步驟-2：調整服務類別建構子" class="headerlink" title="步驟 2：調整服務類別建構子"></a>步驟 2：調整服務類別建構子</h3><p>修改服務類別以接受可選的依賴參數：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserService</span>(<span class="title class_ inherited__">IUserService</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, repository: <span class="type">Optional</span>[IUserRepository], email_client: EmailClient</span>):</span><br><span class="line">        <span class="variable language_">self</span>._repository = repository  <span class="comment"># 使用私有屬性儲存</span></span><br><span class="line">        <span class="variable language_">self</span>.email_client = email_client</span><br></pre></td></tr></table></figure>
+
+<h3 id="步驟-3：使用-property-實現延遲初始化"><a href="#步驟-3：使用-property-實現延遲初始化" class="headerlink" title="步驟 3：使用 @property 實現延遲初始化"></a>步驟 3：使用 @property 實現延遲初始化</h3><p>這是核心步驟，使用 <code>@property</code> 裝飾器創建延遲載入的屬性：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">UserService</span>(<span class="title class_ inherited__">IUserService</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, repository: <span class="type">Optional</span>[IUserRepository], email_client: EmailClient</span>):</span><br><span class="line">        <span class="variable language_">self</span>._repository = repository</span><br><span class="line">        <span class="variable language_">self</span>.email_client = email_client</span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">repository</span>(<span class="params">self</span>) -&gt; IUserRepository:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;延遲初始化 repository，只在真正需要時才創建&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._repository <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">from</span> repositories.user <span class="keyword">import</span> UserRepository</span><br><span class="line">            <span class="variable language_">self</span>._repository = UserRepository()</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._repository</span><br></pre></td></tr></table></figure>
+
+<h3 id="property-裝飾器詳解"><a href="#property-裝飾器詳解" class="headerlink" title="@property 裝飾器詳解"></a>@property 裝飾器詳解</h3><h4 id="功用與目的"><a href="#功用與目的" class="headerlink" title="功用與目的"></a>功用與目的</h4><p><code>@property</code> 是 Python 的內建裝飾器，用於將方法轉換為屬性存取器，主要功用包括：</p>
+<ol>
+<li><strong>封裝性</strong>：隱藏內部實作細節</li>
+<li><strong>延遲計算</strong>：只在需要時才執行計算或初始化</li>
+<li><strong>資料驗證</strong>：在存取時進行驗證或轉換</li>
+<li><strong>向後相容</strong>：可以將簡單屬性升級為計算屬性而不改變使用方式</li>
+</ol>
+<h4 id="基本用法範例"><a href="#基本用法範例" class="headerlink" title="基本用法範例"></a>基本用法範例</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Circle</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, radius</span>):</span><br><span class="line">        <span class="variable language_">self</span>._radius = radius</span><br><span class="line">        <span class="variable language_">self</span>._area = <span class="literal">None</span>  <span class="comment"># 延遲計算的面積</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">radius</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._radius</span><br><span class="line">    </span><br><span class="line"><span class="meta">    @radius.setter</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">radius</span>(<span class="params">self, value</span>):</span><br><span class="line">        <span class="keyword">if</span> value &lt; <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">raise</span> ValueError(<span class="string">&quot;半徑不能為負數&quot;</span>)</span><br><span class="line">        <span class="variable language_">self</span>._radius = value</span><br><span class="line">        <span class="variable language_">self</span>._area = <span class="literal">None</span>  <span class="comment"># 重置面積快取</span></span><br><span class="line">    </span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">area</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;延遲計算面積&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._area <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&quot;計算面積...&quot;</span>)  <span class="comment"># 只在第一次存取時執行</span></span><br><span class="line">            <span class="variable language_">self</span>._area = <span class="number">3.14159</span> * <span class="variable language_">self</span>._radius ** <span class="number">2</span></span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._area</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用範例</span></span><br><span class="line">circle = Circle(<span class="number">5</span>)</span><br><span class="line"><span class="built_in">print</span>(circle.radius)  <span class="comment"># 5</span></span><br><span class="line"><span class="built_in">print</span>(circle.area)    <span class="comment"># 計算面積... 78.53975</span></span><br><span class="line"><span class="built_in">print</span>(circle.area)    <span class="comment"># 78.53975 (不會重新計算)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="步驟-4：處理需要額外參數的情況"><a href="#步驟-4：處理需要額外參數的情況" class="headerlink" title="步驟 4：處理需要額外參數的情況"></a>步驟 4：處理需要額外參數的情況</h3><p>對於需要資料庫連線等參數的 Repository，需要在服務中保存必要的參數：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">OrderService</span>(<span class="title class_ inherited__">IOrderService</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, repository: <span class="type">Optional</span>[IOrderRepository], payment_client: IPaymentClient, db_session: Session</span>):</span><br><span class="line">        <span class="variable language_">self</span>._repository = repository</span><br><span class="line">        <span class="variable language_">self</span>.payment_client = payment_client</span><br><span class="line">        <span class="variable language_">self</span>._db_session = db_session  <span class="comment"># 保存資料庫連線</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">repository</span>(<span class="params">self</span>) -&gt; IOrderRepository:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;延遲初始化 repository，只在真正需要時才創建&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._repository <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">from</span> repositories.order <span class="keyword">import</span> OrderRepository</span><br><span class="line">            <span class="variable language_">self</span>._repository = OrderRepository(<span class="variable language_">self</span>._db_session)</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._repository</span><br></pre></td></tr></table></figure>
+
+<h3 id="完整實作範例"><a href="#完整實作範例" class="headerlink" title="完整實作範例"></a>完整實作範例</h3><p>以下是完整的 UserService 實作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span></span><br><span class="line"><span class="keyword">from</span> services.interfaces <span class="keyword">import</span> IUserService</span><br><span class="line"><span class="keyword">from</span> repositories.interfaces <span class="keyword">import</span> IUserRepository</span><br><span class="line"><span class="keyword">from</span> clients.email_client <span class="keyword">import</span> EmailClient</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">UserService</span>(<span class="title class_ inherited__">IUserService</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, repository: <span class="type">Optional</span>[IUserRepository], email_client: EmailClient</span>):</span><br><span class="line">        <span class="variable language_">self</span>._repository = repository</span><br><span class="line">        <span class="variable language_">self</span>.email_client = email_client</span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">repository</span>(<span class="params">self</span>) -&gt; IUserRepository:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;延遲初始化 repository，只在真正需要時才創建&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._repository <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">from</span> repositories.user <span class="keyword">import</span> UserRepository</span><br><span class="line">            <span class="variable language_">self</span>._repository = UserRepository()</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._repository</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">get_user_profile</span>(<span class="params">self, user_id: <span class="built_in">str</span></span>):</span><br><span class="line">        <span class="comment"># 這個方法不使用 repository，只回傳快取資料</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">await</span> <span class="variable language_">self</span>._get_cached_profile(user_id)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_user</span>(<span class="params">self, user_data: <span class="built_in">dict</span></span>):</span><br><span class="line">        <span class="comment"># 只有在這裡真正需要時，repository 才會被創建</span></span><br><span class="line">        result = <span class="keyword">await</span> <span class="variable language_">self</span>.repository.save_user(user_data)</span><br><span class="line">        <span class="keyword">await</span> <span class="variable language_">self</span>.email_client.send_welcome_email(user_data[<span class="string">&#x27;email&#x27;</span>])</span><br><span class="line">        <span class="keyword">return</span> result</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">update_user_preferences</span>(<span class="params">self, user_id: <span class="built_in">str</span>, preferences: <span class="built_in">dict</span></span>):</span><br><span class="line">        <span class="comment"># 需要資料庫操作，會觸發 repository 初始化</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">await</span> <span class="variable language_">self</span>.repository.update_preferences(user_id, preferences)</span><br></pre></td></tr></table></figure>
+
+<h2 id="效能優化效果"><a href="#效能優化效果" class="headerlink" title="效能優化效果"></a>效能優化效果</h2><h3 id="優化前後對比"><a href="#優化前後對比" class="headerlink" title="優化前後對比"></a>優化前後對比</h3><table>
+<thead>
+<tr>
+<th>場景</th>
+<th>優化前</th>
+<th>優化後</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>不需要 Repository 的請求</td>
+<td>創建所有依賴</td>
+<td>只創建必要依賴</td>
+</tr>
+<tr>
+<td>需要 Repository 的請求</td>
+<td>創建所有依賴</td>
+<td>按需創建依賴</td>
+</tr>
+<tr>
+<td>記憶體使用</td>
+<td>固定高用量</td>
+<td>動態調整</td>
+</tr>
+<tr>
+<td>初始化時間</td>
+<td>固定成本</td>
+<td>分攤成本</td>
+</tr>
+</tbody></table>
+<h3 id="實際應用場景"><a href="#實際應用場景" class="headerlink" title="實際應用場景"></a>實際應用場景</h3><ol>
+<li><strong>只需要外部 API 呼叫</strong>：如 <code>get_user_profile()</code> 方法只使用快取資料，不需要資料庫操作</li>
+<li><strong>混合操作</strong>：如 <code>create_user()</code> 需要同時使用 repository 和 email_client</li>
+<li><strong>條件性使用</strong>：根據業務邏輯決定是否需要特定依賴</li>
+</ol>
+<blockquote>
+<p><strong>備註</strong>：</p>
+<ul>
+<li>延遲初始化適用於創建成本較高的依賴物件</li>
+<li>使用 <code>@property</code> 可以保持原有的程式碼使用方式不變</li>
+<li>在多執行緒環境中需要考慮執行緒安全性</li>
+<li>建議在依賴創建失敗時提供明確的錯誤訊息</li>
+</ul>
+</blockquote>
+<h2 id="延伸應用"><a href="#延伸應用" class="headerlink" title="延伸應用"></a>延伸應用</h2><h3 id="快取機制結合"><a href="#快取機制結合" class="headerlink" title="快取機制結合"></a>快取機制結合</h3><p>可以將延遲初始化與快取機制結合：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@property</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">expensive_resource</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;結合快取的延遲初始化&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">hasattr</span>(<span class="variable language_">self</span>, <span class="string">&#x27;_expensive_resource&#x27;</span>):</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;初始化昂貴資源...&quot;</span>)</span><br><span class="line">        <span class="variable language_">self</span>._expensive_resource = ExpensiveResource()</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">self</span>._expensive_resource</span><br></pre></td></tr></table></figure>
+
+<h3 id="條件性依賴"><a href="#條件性依賴" class="headerlink" title="條件性依賴"></a>條件性依賴</h3><p>根據配置決定使用哪種實作：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@property</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">storage_client</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;根據配置選擇儲存客戶端&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="variable language_">self</span>._storage_client <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.config.use_s3:</span><br><span class="line">            <span class="keyword">from</span> clients.s3_client <span class="keyword">import</span> S3Client</span><br><span class="line">            <span class="variable language_">self</span>._storage_client = S3Client()</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">from</span> clients.local_client <span class="keyword">import</span> LocalClient</span><br><span class="line">            <span class="variable language_">self</span>._storage_client = LocalClient()</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">self</span>._storage_client</span><br></pre></td></tr></table></figure>
+
+<h2 id="常見問題"><a href="#常見問題" class="headerlink" title="常見問題"></a>常見問題</h2><h3 id="Q-什麼時候應該使用延遲初始化？"><a href="#Q-什麼時候應該使用延遲初始化？" class="headerlink" title="Q: 什麼時候應該使用延遲初始化？"></a>Q: 什麼時候應該使用延遲初始化？</h3><p>A: 當依賴物件創建成本高、不是每次都需要使用，或者需要根據執行時條件決定創建哪種實作時。</p>
+<h3 id="Q-延遲初始化會影響錯誤處理嗎？"><a href="#Q-延遲初始化會影響錯誤處理嗎？" class="headerlink" title="Q: 延遲初始化會影響錯誤處理嗎？"></a>Q: 延遲初始化會影響錯誤處理嗎？</h3><p>A: 會的，初始化錯誤會延遲到第一次存取時才發生。建議在 property 中加入適當的錯誤處理。</p>
+<h3 id="Q-如何確保執行緒安全？"><a href="#Q-如何確保執行緒安全？" class="headerlink" title="Q: 如何確保執行緒安全？"></a>Q: 如何確保執行緒安全？</h3><p>A: 可以使用 <code>threading.Lock</code> 或其他同步機制來保護初始化過程。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ThreadSafeService</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="variable language_">self</span>._repository = <span class="literal">None</span></span><br><span class="line">        <span class="variable language_">self</span>._lock = threading.Lock()</span><br><span class="line">    </span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">repository</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._repository <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">with</span> <span class="variable language_">self</span>._lock:</span><br><span class="line">                <span class="keyword">if</span> <span class="variable language_">self</span>._repository <span class="keyword">is</span> <span class="literal">None</span>:  <span class="comment"># 雙重檢查</span></span><br><span class="line">                    <span class="variable language_">self</span>._repository = Repository()</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._repository</span><br></pre></td></tr></table></figure>
+                    
+                </div>
+
+                
+
+                <div class="post-bottom-tags-and-share border-box">
+                    <div>
+                        
+                            <ul class="post-tags-box border-box">
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Python/">Python</a>
+                                    </li>
+                                
+                                    <li class="tag-item border-box">
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/property/">property</a>
+                                    </li>
+                                
+                            </ul>
+                        
+                    </div>
+                    <div>
+                        
+                    </div>
+                </div>
+
+                
+
+                
+                    <div class="post-nav border-box">
+                        
+                        
+                            <div class="next-post">
+                                <a class="next"
+                                   rel="next"
+                                   href="/blog/cmfkxvgb70000mclcdk2e9p8z/"
+                                   title="Docker debugpy 路徑映射與斷點問題排查"
+                                >
+                                    <span class="title flex-center">
+                                        <span class="post-nav-title-item text-ellipsis">Docker debugpy 路徑映射與斷點問題排查</span>
+                                        <span class="post-nav-item">Next posts</span>
+                                    </span>
+                                    <span class="right arrow-icon flex-center">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        
+                    </div>
+                
+
+                
+                    
+
+
+    <div class="comments-container border-box">
+        <div id="comments-anchor" class="comment-area-title border-box">
+            <i class="fas fa-comments"></i>&nbsp;Comments
+        </div>
+        <div class="comment-plugin-fail border-box">
+    <span class="fail-tip">Comment plugin failed to load</span>
+    <button class="reload keep-button">Click to reload</button>
+</div>
+<div class="comment-plugin-loading flex-center border-box">
+    <i class="loading-icon fa-solid fa-spinner fa-spin"></i>
+    <span class="load-tip">Loading comment plugin</span>
+</div>
+<script data-pjax>
+  window.KeepCommentPlugin = {}
+  window.KeepCommentPlugin.hideLoading = () => {
+    const cplDom = document.querySelector('.comments-container .comment-plugin-loading')
+    cplDom.style.display = 'none'
+  }
+  window.KeepCommentPlugin.loadFailHandle = () => {
+    window.KeepCommentPlugin.hideLoading()
+    const cpfDom = document.querySelector('.comments-container .comment-plugin-fail')
+    cpfDom.style.display = 'flex'
+    cpfDom.querySelector('.reload').addEventListener('click', () => {
+      window.location.reload()
+    })
+  }
+</script>
+
+        
+            
+
+    <div class="giscus-comments-container">
+        <div class="giscus" id="giscus"></div>
+        <script data-pjax
+                onerror="window.KeepCommentPlugin.loadFailHandle()"
+        >
+          if (!window.KeepCommentPlugin?.getGiscusTheme) {
+            window.KeepCommentPlugin.getGiscusTheme = () => {
+              return document.documentElement.classList.contains('dark-mode') ? 'dark_dimmed' : 'light_tritanopia'
+            }
+          }
+
+          if (!window.KeepCommentPlugin?.changeGiscusTheme) {
+            window.KeepCommentPlugin.changeGiscusTheme = () => {
+              const iframe = document.querySelector('iframe.giscus-frame')
+              iframe && iframe.contentWindow.postMessage({
+                giscus: {
+                  setConfig: {
+                    theme: window.KeepCommentPlugin.getGiscusTheme()
+                  }
+                }
+              }, 'https://giscus.app')
+            }
+          }
+
+          if (!window.KeepCommentPlugin?.initGiscus) {
+            window.KeepCommentPlugin.initGiscus = () => {
+              const script = document.createElement('script')
+              script.async = true
+              script.src = 'https://giscus.app/client.js'
+              script.setAttribute('data-repo', 'chui359/gitalkMessage')
+              script.setAttribute('data-repo-id', 'R_kgDOMkQ00w')
+              script.setAttribute('data-category', 'Announcements')
+              script.setAttribute('data-category-id', 'DIC_kwDOMkQ0084Chter')
+              script.setAttribute('data-reactions-enabled', '1')
+              script.setAttribute('data-lang', 'en')
+              script.setAttribute('data-mapping', 'pathname')
+              script.setAttribute('data-strict', '0')
+              script.setAttribute('data-emit-metadata', '0')
+              script.setAttribute('data-input-position', 'top')
+              script.setAttribute('crossorigin', 'anonymous')
+              script.setAttribute('loading', 'lazy')
+              script.setAttribute('data-theme', window.KeepCommentPlugin.getGiscusTheme())
+              document.querySelector('.giscus-comments-container').appendChild(script)
+              script.onerror = () => {
+                window.KeepCommentPlugin.loadFailHandle()
+              }
+              script.onload = () => {
+                window.KeepCommentPlugin.hideLoading()
+              }
+              const toggleThemeBtn = document.querySelector('.tool-toggle-theme-mode')
+              toggleThemeBtn && toggleThemeBtn.addEventListener('click', () => {
+                window.KeepCommentPlugin.changeGiscusTheme()
+              })
+            }
+          }
+
+          if ('true' === "true") {
+            setTimeout(() => {
+              window.KeepCommentPlugin.initGiscus()
+            }, 1000)
+          } else {
+            window.addEventListener("DOMContentLoaded", window.KeepCommentPlugin.initGiscus)
+          }
+        </script>
+    </div>
+
+
+        
+    </div>
+
+
+
+
+
+                
+            </div>
+        </div>
+
+        
+            <div class="pc-post-toc right-toc">
+                <div class="post-toc-wrap border-box">
+    <div class="post-toc border-box">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%A7%8B%E5%95%8F%E9%A1%8C"><span class="nav-text">原始問題</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C%E5%88%86%E6%9E%90"><span class="nav-text">問題分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E7%9B%AE%E6%A8%99"><span class="nav-text">解決目標</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-1%EF%BC%9A%E4%BF%AE%E6%94%B9%E4%BE%9D%E8%B3%B4%E6%B3%A8%E5%85%A5%E5%87%BD%E6%95%B8"><span class="nav-text">步驟 1：修改依賴注入函數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-2%EF%BC%9A%E8%AA%BF%E6%95%B4%E6%9C%8D%E5%8B%99%E9%A1%9E%E5%88%A5%E5%BB%BA%E6%A7%8B%E5%AD%90"><span class="nav-text">步驟 2：調整服務類別建構子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-3%EF%BC%9A%E4%BD%BF%E7%94%A8-property-%E5%AF%A6%E7%8F%BE%E5%BB%B6%E9%81%B2%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">步驟 3：使用 @property 實現延遲初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#property-%E8%A3%9D%E9%A3%BE%E5%99%A8%E8%A9%B3%E8%A7%A3"><span class="nav-text">@property 裝飾器詳解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%9F%E7%94%A8%E8%88%87%E7%9B%AE%E7%9A%84"><span class="nav-text">功用與目的</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95%E7%AF%84%E4%BE%8B"><span class="nav-text">基本用法範例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-4%EF%BC%9A%E8%99%95%E7%90%86%E9%9C%80%E8%A6%81%E9%A1%8D%E5%A4%96%E5%8F%83%E6%95%B8%E7%9A%84%E6%83%85%E6%B3%81"><span class="nav-text">步驟 4：處理需要額外參數的情況</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E5%AF%A6%E4%BD%9C%E7%AF%84%E4%BE%8B"><span class="nav-text">完整實作範例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E8%83%BD%E5%84%AA%E5%8C%96%E6%95%88%E6%9E%9C"><span class="nav-text">效能優化效果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%84%AA%E5%8C%96%E5%89%8D%E5%BE%8C%E5%B0%8D%E6%AF%94"><span class="nav-text">優化前後對比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%A6%E9%9A%9B%E6%87%89%E7%94%A8%E5%A0%B4%E6%99%AF"><span class="nav-text">實際應用場景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E6%87%89%E7%94%A8"><span class="nav-text">延伸應用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%AB%E5%8F%96%E6%A9%9F%E5%88%B6%E7%B5%90%E5%90%88"><span class="nav-text">快取機制結合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%9D%E4%BB%B6%E6%80%A7%E4%BE%9D%E8%B3%B4"><span class="nav-text">條件性依賴</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C"><span class="nav-text">常見問題</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E6%87%89%E8%A9%B2%E4%BD%BF%E7%94%A8%E5%BB%B6%E9%81%B2%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%9F"><span class="nav-text">Q: 什麼時候應該使用延遲初始化？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-%E5%BB%B6%E9%81%B2%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%83%E5%BD%B1%E9%9F%BF%E9%8C%AF%E8%AA%A4%E8%99%95%E7%90%86%E5%97%8E%EF%BC%9F"><span class="nav-text">Q: 延遲初始化會影響錯誤處理嗎？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-%E5%A6%82%E4%BD%95%E7%A2%BA%E4%BF%9D%E5%9F%B7%E8%A1%8C%E7%B7%92%E5%AE%89%E5%85%A8%EF%BC%9F"><span class="nav-text">Q: 如何確保執行緒安全？</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        
+    </div>
+</div>
+
+
+                
+            </div>
+        </div>
+
+        <div class="page-main-content-bottom border-box">
+            
+<footer class="footer border-box">
+    <div class="copyright-info info-item">
+    &copy;&nbsp;<span>2024</span>&nbsp;-&nbsp;2025
+    
+            &nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;&nbsp;<a href="/">Cloudy</a>
+        
+    </div>
+
+    <div class="theme-info info-item">
+        Powered by&nbsp;<a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;&&nbsp;Theme&nbsp;<a class="keep-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep</a>
+    </div>
+
+    
+
+    
+        <div class="count-info info-item">
+            
+
+            
+                <span class="count-item border-box uv">
+                    <span class="item-type border-box">Unique Visitor</span>
+                    <span class="item-value border-box uv" id="busuanzi_value_site_uv"></span>
+                </span>
+            
+
+            
+                <span class="count-item border-box pv">
+                    <span class="item-type border-box">Page View</span>
+                    <span class="item-value border-box pv" id="busuanzi_value_site_pv"></span>
+                </span>
+            
+        </div>
+    
+
+    
+</footer>
+
+        </div>
+    </div>
+
+    <!-- post tools -->
+    
+        <div class="post-tools right-toc">
+            <div class="post-tools-container border-box">
+    <ul class="post-tools-list border-box">
+        <!-- PC encrypt again -->
+        
+
+        <!-- PC TOC show toggle -->
+        
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        <!-- PC go comment -->
+        
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        
+
+        <!-- PC full screen -->
+        <li class="tools-item flex-center full-screen">
+            <i class="fa-solid fa-expand"></i>
+        </li>
+    </ul>
+</div>
+
+        </div>
+    
+
+    <!-- side tools -->
+    <div class="side-tools">
+        <div class="side-tools-container border-box ">
+    <ul class="side-tools-list side-tools-show-handle border-box">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <!-- toggle mode -->
+        
+
+        <!-- rss -->
+        
+
+        <!-- to bottom -->
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list border-box">
+        
+            <li class="tools-item toggle-show-toc-tablet flex-center">
+                <i class="fas fa-list"></i>
+            </li>
+        
+
+        
+            <li class="tools-item go-to-comments-tablet flex-center">
+                <i class="fas fa-comment"></i>
+            </li>
+        
+
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+
+        <li class="tools-item tool-scroll-to-top flex-center show-arrow">
+            <i class="arrow fas fa-arrow-up"></i>
+            <span class="percent"></span>
+        </li>
+    </ul>
+</div>
+
+    </div>
+
+    <!-- image mask -->
+    <div class="zoom-in-image-mask">
+    <img class="zoom-in-image">
+</div>
+
+
+    <!-- local search -->
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fas fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="close-popup-btn">
+                <i class="fas fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fas fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    <!-- tablet toc -->
+    
+        <div class="tablet-post-toc-mask">
+            <div class="tablet-post-toc">
+                <div class="post-toc-wrap border-box">
+    <div class="post-toc border-box">
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%A7%8B%E5%95%8F%E9%A1%8C"><span class="nav-text">原始問題</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%95%8F%E9%A1%8C%E5%88%86%E6%9E%90"><span class="nav-text">問題分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%B1%BA%E7%9B%AE%E6%A8%99"><span class="nav-text">解決目標</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-1%EF%BC%9A%E4%BF%AE%E6%94%B9%E4%BE%9D%E8%B3%B4%E6%B3%A8%E5%85%A5%E5%87%BD%E6%95%B8"><span class="nav-text">步驟 1：修改依賴注入函數</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-2%EF%BC%9A%E8%AA%BF%E6%95%B4%E6%9C%8D%E5%8B%99%E9%A1%9E%E5%88%A5%E5%BB%BA%E6%A7%8B%E5%AD%90"><span class="nav-text">步驟 2：調整服務類別建構子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-3%EF%BC%9A%E4%BD%BF%E7%94%A8-property-%E5%AF%A6%E7%8F%BE%E5%BB%B6%E9%81%B2%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-text">步驟 3：使用 @property 實現延遲初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#property-%E8%A3%9D%E9%A3%BE%E5%99%A8%E8%A9%B3%E8%A7%A3"><span class="nav-text">@property 裝飾器詳解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%9F%E7%94%A8%E8%88%87%E7%9B%AE%E7%9A%84"><span class="nav-text">功用與目的</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95%E7%AF%84%E4%BE%8B"><span class="nav-text">基本用法範例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%A5%E9%A9%9F-4%EF%BC%9A%E8%99%95%E7%90%86%E9%9C%80%E8%A6%81%E9%A1%8D%E5%A4%96%E5%8F%83%E6%95%B8%E7%9A%84%E6%83%85%E6%B3%81"><span class="nav-text">步驟 4：處理需要額外參數的情況</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E5%AF%A6%E4%BD%9C%E7%AF%84%E4%BE%8B"><span class="nav-text">完整實作範例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E8%83%BD%E5%84%AA%E5%8C%96%E6%95%88%E6%9E%9C"><span class="nav-text">效能優化效果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%84%AA%E5%8C%96%E5%89%8D%E5%BE%8C%E5%B0%8D%E6%AF%94"><span class="nav-text">優化前後對比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%A6%E9%9A%9B%E6%87%89%E7%94%A8%E5%A0%B4%E6%99%AF"><span class="nav-text">實際應用場景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E6%87%89%E7%94%A8"><span class="nav-text">延伸應用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%AB%E5%8F%96%E6%A9%9F%E5%88%B6%E7%B5%90%E5%90%88"><span class="nav-text">快取機制結合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%9D%E4%BB%B6%E6%80%A7%E4%BE%9D%E8%B3%B4"><span class="nav-text">條件性依賴</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A6%8B%E5%95%8F%E9%A1%8C"><span class="nav-text">常見問題</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-%E4%BB%80%E9%BA%BC%E6%99%82%E5%80%99%E6%87%89%E8%A9%B2%E4%BD%BF%E7%94%A8%E5%BB%B6%E9%81%B2%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%9F"><span class="nav-text">Q: 什麼時候應該使用延遲初始化？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-%E5%BB%B6%E9%81%B2%E5%88%9D%E5%A7%8B%E5%8C%96%E6%9C%83%E5%BD%B1%E9%9F%BF%E9%8C%AF%E8%AA%A4%E8%99%95%E7%90%86%E5%97%8E%EF%BC%9F"><span class="nav-text">Q: 延遲初始化會影響錯誤處理嗎？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Q-%E5%A6%82%E4%BD%95%E7%A2%BA%E4%BF%9D%E5%9F%B7%E8%A1%8C%E7%B7%92%E5%AE%89%E5%85%A8%EF%BC%9F"><span class="nav-text">Q: 如何確保執行緒安全？</span></a></li></ol></li></ol>
+    </div>
+</div>
+
+            </div>
+        </div>
+    
+</main>
+
+
+
+
+
+<!-- common js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/utils.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/header-shrink.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/back2top.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/toggle-theme.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/code-block.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/main.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/libs/anime.min.js"></script>
+
+<!-- local search -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/local-search.min.js"></script>
+
+
+<!-- lazyload -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/lazyload.min.js"></script>
+
+
+<div class="pjax">
+    <!-- home page -->
+    
+
+    <!-- post page -->
+    
+        <!-- post-helper -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/post/post-helper.min.js"></script>
+
+        <!-- toc -->
+        
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/post/toc.min.js"></script>
+        
+
+        <!-- copyright-info -->
+        
+
+        <!-- share -->
+        
+    
+
+    <!-- categories page -->
+    
+
+    <!-- links page -->
+    
+
+    <!-- photos page -->
+    
+
+    <!-- tools page -->
+    
+</div>
+
+<!-- mermaid -->
+
+
+<!-- pjax -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-theme-keep/4.2.5/js/libs/pjax.min.js"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.pjax = new Pjax({
+            selectors: [
+                'head title',
+                '.page-container',
+                '.pjax'
+            ],
+            history: true,
+            debug: false,
+            cacheBust: false,
+            timeout: 0,
+            analytics: false,
+            currentUrlFullReload: false,
+            scrollRestoration: false,
+        });
+
+        document.addEventListener('pjax:send', () => {
+            KEEP.utils.pjaxProgressBarStart()
+        });
+
+        document.addEventListener('pjax:complete', () => {
+            KEEP.utils.pjaxProgressBarEnd()
+            window.pjax.executeScripts(document.querySelectorAll('script[data-pjax], .pjax script'))
+            KEEP.initExecute()
+        });
+    });
+</script>
+
+
+
+
+    
+        
+    
+
+</body>
+</html>
