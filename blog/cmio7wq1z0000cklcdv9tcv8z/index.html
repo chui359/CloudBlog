@@ -9,7 +9,7 @@
     
     <title>
         
-            Python 中的函式多載與型別提示： @overload |
+            RabbitMQ 叢集與 Quorum Queue 高可用性實踐 |
         
         Cloudy&#39;s blog
     </title>
@@ -192,7 +192,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        Python 中的函式多載與型別提示： @overload
+                        RabbitMQ 叢集與 Quorum Queue 高可用性實踐
                     </div>
                 
 
@@ -218,13 +218,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-12-02 10:04:14</span>
+                <span class="datetime">2025-12-02 14:48:10</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Tue Dec 02 2025 14:46:26 GMT+0800">2025-12-02 14:46:26</span>
+                    <span class="datetime" data-updated="Tue Dec 02 2025 14:48:55 GMT+0800">2025-12-02 14:48:55</span>
                 </span>
             
         
@@ -233,7 +233,7 @@
             <span class="meta-info-item post-category border-box"><i class="icon fas fa-folder"></i>&nbsp;
                 <ul class="post-category-ul">
                     
-                            <li class="category-item"><a href="/categories/Python/">Python</a></li>
+                            <li class="category-item"><a href="/categories/Kubernetes/">Kubernetes</a></li>
                         
                     
                 </ul>
@@ -244,10 +244,10 @@
             <span class="post-tag meta-info-item border-box">
                 <ul class="post-tag-ul">
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Kubernetes/">Kubernetes</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Overload/">Overload</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/RabbitMQ/">RabbitMQ</a></li>
                         
                     
                 </ul>
@@ -276,32 +276,60 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 Python 的世界裡，函式多載 (Function Overloading) 並不像 C# 那樣，允許我們定義多個同名但參數簽名不同的函式。然而，在開發複雜的應用程式或函式庫時，我們經常希望同一個函式能根據不同的輸入參數，提供不同的行為或回傳型別。這時候，<code>typing</code> 模組中的 <code>@overload</code> 裝飾器就成了我們的得力助手，它能在不犧牲型別安全性的前提下，為函式提供更豐富、更精確的「使用說明」。</p>
-<h2 id="處理問題"><a href="#處理問題" class="headerlink" title="處理問題"></a>處理問題</h2><p><strong>問題</strong>: 如何在 Python 中為同一個函式提供多種不同的參數簽名 (signature) 和回傳型別提示，以提升程式碼的可讀性、可維護性，並讓型別檢查工具（如 Mypy, Pyright 等）能正確地捕捉潛在錯誤？</p>
-<p><strong>解決方法</strong>: 使用 <code>@overload</code> 裝飾器來定義函式的多個「型別簽名」，並搭配一個實際的函式實作來處理所有情況。這讓開發者和型別檢查工具都能清楚地知道，在不同呼叫方式下，函式預期接收什麼參數，以及會回傳什麼結果。</p>
-<h2 id="處理過程"><a href="#處理過程" class="headerlink" title="處理過程"></a>處理過程</h2><h3 id="overload-的核心概念"><a href="#overload-的核心概念" class="headerlink" title="@overload 的核心概念"></a>@overload 的核心概念</h3><p>@overload 並非實現真正的函式多載，而是為型別檢查工具提供多個函式簽名的「宣告」。你可以將它想像成是為你的函式寫了多份「使用手冊」或「規格說明書」：</p>
-<ul>
-<li>每份 @overload 定義都像是一份獨立的「使用手冊」，說明了在特定參數組合下，函式預期接收的參數型別和回傳的結果型別。</li>
-<li>這些「使用手冊」只供型別檢查工具參考，它們本身不包含任何實際的程式邏輯。</li>
-<li>實際的函式邏輯只會存在於一個沒有 @overload 裝飾的同名函式中。這個函式的簽名（參數和回傳型別）必須能夠兼容所有 @overload 宣告的簽名，確保它能處理所有可能的呼叫情況。</li>
-</ul>
-<h3 id="範例分析：ResourceSelector-的-select-resource-函式"><a href="#範例分析：ResourceSelector-的-select-resource-函式" class="headerlink" title="範例分析：ResourceSelector 的 select_resource 函式"></a>範例分析：ResourceSelector 的 select_resource 函式</h3><p>讓我們以一個更通用的 <code>ResourceSelector</code> 類別為例，它負責根據資源 ID 和一個旗標來選擇不同類型的資源處理器。</p>
-<p>我們希望 <code>select_resource</code> 函式能有以下兩種明確的型別行為：</p>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在分散式系統中，訊息佇列 (Message Queue) 扮演著關鍵的溝通橋樑，確保服務間的異步協作與數據可靠傳遞。RabbitMQ 作為廣受歡迎的訊息代理，其高可用性與數據一致性是生產環境中不可或缺的考量。本文旨在整理在 Kubernetes 環境下，如何正確配置 RabbitMQ 叢集所需的 Erlang Cookie，並深入理解 Quorum Queue 的目的與其在叢集中的應用，以實現更穩健的訊息處理機制。</p>
+<h2 id="處理問題"><a href="#處理問題" class="headerlink" title="處理問題"></a>處理問題</h2><p>本次實踐主要解決以下幾個關鍵問題：</p>
 <ol>
-<li>如果只提供一個 <code>resource_id</code>，它回傳一個 <code>ResourceBase</code> 類型的處理器。</li>
-<li>如果提供 <code>resource_id</code> 並且明確指定 <code>detailed=True</code>，它回傳一個 <code>DetailedResourceBase</code> 類型的處理器。</li>
+<li><strong>RabbitMQ 叢集建立：</strong> 如何在 Kubernetes 環境中，為 RabbitMQ 節點配置必要的 Erlang Cookie，使其能夠成功形成一個穩定的叢集。</li>
+<li><strong>Quorum Queue 應用：</strong> 理解 Quorum Queue 的設計理念，以及如何在應用程式中正確宣告並利用它來實現訊息的高可用性與強一致性。</li>
+<li><strong>核心概念釐清：</strong> 區分 Erlang Cookie（叢集基礎）與 Quorum Queue（佇列類型）在 RabbitMQ 生態系統中的不同職責與相互關係。</li>
 </ol>
-<h3 id="程式碼範例"><a href="#程式碼範例" class="headerlink" title="程式碼範例"></a>程式碼範例</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">python</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> overload, <span class="type">Literal</span>, <span class="type">Type</span>, <span class="type">Union</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 假設這是我們的基礎資源處理器介面</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceBase</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">process</span>(<span class="params">self, data: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;處理基本資源資料&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">f&quot;處理基本資源: <span class="subst">&#123;data&#125;</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 假設這是詳細資源處理器介面，繼承自基礎介面</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DetailedResourceBase</span>(<span class="title class_ inherited__">ResourceBase</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">analyze</span>(<span class="params">self, data: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;對資源資料進行詳細分析&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">&quot;analysis_result&quot;</span>: <span class="string">f&quot;詳細分析結果: <span class="subst">&#123;data&#125;</span>&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceSelector</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;負責根據 ID 選擇合適的資源處理器類別&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 第一個 @overload 定義：只傳入 resource_id</span></span><br><span class="line"><span class="meta">    @overload</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_resource</span>(<span class="params">self, resource_id: <span class="built_in">str</span></span>) -&gt; <span class="type">Type</span>[ResourceBase]: ...</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 第二個 @overload 定義：傳入 resource_id 且 detailed=True</span></span><br><span class="line"><span class="meta">    @overload</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_resource</span>(<span class="params"></span></span><br><span class="line"><span class="params">        self, resource_id: <span class="built_in">str</span>, detailed: <span class="type">Literal</span>[<span class="literal">True</span>]</span></span><br><span class="line"><span class="params">    </span>) -&gt; <span class="type">Type</span>[DetailedResourceBase]: ...</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 實際的函式實作：處理所有情況</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_resource</span>(<span class="params"></span></span><br><span class="line"><span class="params">        self, resource_id: <span class="built_in">str</span>, detailed: <span class="built_in">bool</span> = <span class="literal">False</span></span></span><br><span class="line"><span class="params">    </span>) -&gt; <span class="type">Union</span>[<span class="type">Type</span>[ResourceBase], <span class="type">Type</span>[DetailedResourceBase]]:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        根據資源 ID 選擇合適的資源處理器類別</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            resource_id: 目標資源的唯一識別符</span></span><br><span class="line"><span class="string">            detailed: 是否需要詳細的資源處理器 (預設為 False)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Returns:</span></span><br><span class="line"><span class="string">            合適的資源處理器類別 (ResourceBase 或 DetailedResourceBase)</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;正在選擇資源處理器：ID=<span class="subst">&#123;resource_id&#125;</span>, 詳細模式=<span class="subst">&#123;detailed&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 簡化邏輯：根據 ID 和 detailed 旗標回傳不同類別</span></span><br><span class="line">        <span class="keyword">if</span> <span class="string">&quot;special&quot;</span> <span class="keyword">in</span> resource_id <span class="keyword">and</span> detailed:</span><br><span class="line">            <span class="comment"># 模擬特定條件下的詳細處理器</span></span><br><span class="line">            <span class="keyword">class</span> <span class="title class_">SpecialDetailedResource</span>(<span class="title class_ inherited__">DetailedResourceBase</span>):</span><br><span class="line">                <span class="keyword">def</span> <span class="title function_">analyze</span>(<span class="params">self, data: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">                    <span class="keyword">return</span> &#123;<span class="string">&quot;special_detailed_analysis&quot;</span>: <span class="string">f&quot;特殊詳細分析結果: <span class="subst">&#123;data&#125;</span>&quot;</span>&#125;</span><br><span class="line">            <span class="keyword">return</span> SpecialDetailedResource</span><br><span class="line">        <span class="keyword">elif</span> detailed:</span><br><span class="line">            <span class="keyword">return</span> DetailedResourceBase</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> ResourceBase</span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 範例使用 ---</span></span><br><span class="line">selector = ResourceSelector()</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;--- 情況一：只提供 resource_id ---&quot;</span>)</span><br><span class="line"><span class="comment"># 型別檢查工具會認為 basic_processor_class 是 Type[ResourceBase]</span></span><br><span class="line">basic_processor_class = selector.select_resource(<span class="string">&quot;item_123&quot;</span>)</span><br><span class="line">basic_instance = basic_processor_class()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;基本處理器結果: <span class="subst">&#123;basic_instance.process(<span class="string">&#x27;資料A&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line"><span class="comment"># basic_instance.analyze(&#x27;資料A&#x27;) # 如果呼叫這行，Mypy 會報錯，因為 ResourceBase 沒有 analyze 方法</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n--- 情況二：提供 resource_id 並明確指定 detailed=True ---&quot;</span>)</span><br><span class="line"><span class="comment"># 型別檢查工具會認為 detailed_processor_class 是 Type[DetailedResourceBase]</span></span><br><span class="line">detailed_processor_class = selector.select_resource(<span class="string">&quot;special_item_456&quot;</span>, detailed=<span class="literal">True</span>)</span><br><span class="line">detailed_instance = detailed_processor_class()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;詳細處理器結果: <span class="subst">&#123;detailed_instance.process(<span class="string">&#x27;資料B&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;詳細分析結果: <span class="subst">&#123;detailed_instance.analyze(<span class="string">&#x27;資料B&#x27;</span>)&#125;</span>&quot;</span>) <span class="comment"># Mypy 不會報錯</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n--- 情況三：提供 resource_id 但 detailed=False (預設值) ---&quot;</span>)</span><br><span class="line"><span class="comment"># 型別檢查工具會認為 another_basic_processor_class 是 Type[ResourceBase]</span></span><br><span class="line">another_basic_processor_class = selector.select_resource(<span class="string">&quot;another_item_789&quot;</span>, detailed=<span class="literal">False</span>)</span><br><span class="line">another_basic_instance = another_basic_processor_class()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;另一個基本處理器結果: <span class="subst">&#123;another_basic_instance.process(<span class="string">&#x27;資料C&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>備註：</p>
+<h2 id="處理過程"><a href="#處理過程" class="headerlink" title="處理過程"></a>處理過程</h2><h3 id="1-配置-Erlang-Cookie-於-Kubernetes-Secret"><a href="#1-配置-Erlang-Cookie-於-Kubernetes-Secret" class="headerlink" title="1. 配置 Erlang Cookie 於 Kubernetes Secret"></a>1. 配置 Erlang Cookie 於 Kubernetes Secret</h3><p><strong>目的：</strong> Erlang Cookie 是 RabbitMQ 叢集節點間相互認證的關鍵。所有欲加入同一叢集的 RabbitMQ 節點必須擁有相同的 Erlang Cookie，否則它們將無法通信並形成叢集。在 Kubernetes 中，我們透過 Secret 來安全地管理這個敏感資訊。</p>
+<p><strong>處理辦法：</strong> 將 Erlang Cookie 作為環境變數 <code>RABBITMQ_ERLANG_COOKIE</code> 注入到 RabbitMQ Pod 中。最推薦的方式是將其加入到現有的 Kubernetes Secret 中。</p>
+<p><strong>範例：更新 <code>rabbitmq-secret</code> 以包含 Erlang Cookie</strong></p>
+<p>假設您已有名為 <code>rabbitmq-secret</code> 的 Secret 包含用戶名和密碼。</p>
+<ol>
+<li><p><strong>生成一個安全的 Erlang Cookie 字串：</strong></p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bash</span><br><span class="line"><span class="comment"># 範例：生成一個 32 字元的隨機字串作為 Erlang Cookie</span></span><br><span class="line">ERLANG_COOKIE_VALUE=$(<span class="built_in">head</span> /dev/urandom | <span class="built_in">tr</span> -dc A-Za-z0-9 | <span class="built_in">head</span> -c 32)</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;生成的 Erlang Cookie: <span class="variable">$ERLANG_COOKIE_VALUE</span>&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>將 Erlang Cookie 加入現有 Secret (推薦使用 <code>kubectl patch</code>)：</strong></p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">bash</span><br><span class="line"><span class="comment"># 將 &#x27;your_generated_erlang_cookie&#x27; 替換為您上一步生成的實際值</span></span><br><span class="line">kubectl patch secret rabbitmq-secret -n my-namespace --<span class="built_in">type</span>=json -p=<span class="string">&#x27;[&#123;&quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/data/RABBITMQ_ERLANG_COOKIE&quot;, &quot;value&quot;: &quot;&#x27;</span>$(<span class="built_in">echo</span> -n <span class="string">&quot;your_generated_erlang_cookie&quot;</span> | <span class="built_in">base64</span>)<span class="string">&#x27;&quot;&#125;]&#x27;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <ul>
-<li><code>@overload</code> 裝飾器定義的函式體通常只包含 <code>...</code> (Ellipsis)，表示它沒有實際的執行邏輯，僅用於型別提示。</li>
-<li>實際執行的函式必須放在所有 <code>@overload</code> 定義之後，且其簽名必須能夠「覆蓋」所有 <code>@overload</code> 宣告的簽名。</li>
-<li>使用 <code>Type[]</code> 是因為我們回傳的是類別本身，而不是類別的實例。</li>
+<li><strong>備註：</strong> <code>my-namespace</code> 應替換為您實際的命名空間。<code>base64</code> 編碼是 Kubernetes Secret <code>data</code> 欄位的要求。</li>
 </ul>
-</blockquote>
-<h3 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h3><p><code>@overload</code> 裝飾器是 Python 型別提示系統中一個強大的工具，它讓你的函式在型別層面擁有「多種面貌」，而底層的實作則統一處理所有情況。這大大提升了 Python 程式碼的型別安全性、可讀性，並改善了開發體驗，尤其是在大型專案或函式庫開發中，能有效減少潛在的型別錯誤。</p>
+</li>
+<li><p><strong>RabbitMQ Deployment&#x2F;StatefulSet 配置：</strong><br>您的 RabbitMQ 部署 YAML 應包含 <code>envFrom</code> 區塊，以便從 Secret 中載入環境變數。一旦 Secret 更新，<code>RABBITMQ_ERLANG_COOKIE</code> 將會自動提供給容器。</p>
+ <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">yaml</span></span><br><span class="line"><span class="comment"># 您的 RabbitMQ Deployment 或 StatefulSet 配置片段</span></span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">rabbitmq</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">rabbitmq:4.1.4-management</span> <span class="comment"># 或 bitnamilegacy/rabbitmq:4.1.0-debian-12-r0</span></span><br><span class="line">          <span class="attr">envFrom:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">secretRef:</span></span><br><span class="line">                <span class="attr">name:</span> <span class="string">&quot;rabbitmq-secret&quot;</span> <span class="comment"># 此處會自動載入 RABBITMQ_ERLANG_COOKIE</span></span><br><span class="line">          <span class="comment"># ... 其他配置</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="2-宣告-Quorum-Queue"><a href="#2-宣告-Quorum-Queue" class="headerlink" title="2. 宣告 Quorum Queue"></a>2. 宣告 Quorum Queue</h3><p><strong>目的：</strong> Quorum Queue 是 RabbitMQ 提供的一種高可用性佇列類型，它利用 Raft 共識演算法來確保訊息的強一致性、高可用性和容錯性，特別適用於叢集環境。</p>
+<p><strong>處理辦法：</strong> 在應用程式透過 AMQP 客戶端宣告佇列時，透過 <code>arguments</code> 參數指定 <code>x-queue-type</code> 為 <code>quorum</code>。</p>
+<p><strong>範例：Python 應用程式中宣告 Quorum Queue</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">python</span><br><span class="line"><span class="keyword">import</span> aio_pika</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">declare_quorum_queue</span>(<span class="params">channel: aio_pika.Channel, queue_name: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    在 RabbitMQ 中宣告一個 Quorum Queue。</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;正在宣告 Quorum Queue: <span class="subst">&#123;queue_name&#125;</span>&quot;</span>)</span><br><span class="line">    queue = <span class="keyword">await</span> channel.declare_queue(</span><br><span class="line">        queue_name,</span><br><span class="line">        durable=<span class="literal">True</span>, <span class="comment"># Quorum Queue 必須是持久化的</span></span><br><span class="line">        arguments=&#123;<span class="string">&quot;x-queue-type&quot;</span>: <span class="string">&quot;quorum&quot;</span>&#125; <span class="comment"># 指定佇列類型為 Quorum</span></span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Quorum Queue &#x27;<span class="subst">&#123;queue_name&#125;</span>&#x27; 宣告成功。&quot;</span>)</span><br><span class="line">    <span class="keyword">return</span> queue</span><br><span class="line"></span><br><span class="line"><span class="comment"># 範例使用 (在實際應用中，channel 會從 connection 取得)</span></span><br><span class="line"><span class="comment"># async def main():</span></span><br><span class="line"><span class="comment">#     connection = await aio_pika.connect_robust(&quot;amqp://user:password@localhost/&quot;)</span></span><br><span class="line"><span class="comment">#     async with connection:</span></span><br><span class="line"><span class="comment">#         channel = await connection.channel()</span></span><br><span class="line"><span class="comment">#         await declare_quorum_queue(channel, &quot;my_critical_messages&quot;)</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># if __name__ == &quot;__main__&quot;:</span></span><br><span class="line"><span class="comment">#     import asyncio</span></span><br><span class="line"><span class="comment">#     asyncio.run(main())</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>備註：</strong><ul>
+<li><code>durable=True</code> 對於 Quorum Queue 是必須的，它確保佇列定義在 RabbitMQ 重啟後依然存在。</li>
+<li><code>arguments=&#123;&quot;x-queue-type&quot;: &quot;quorum&quot;&#125;</code> 是關鍵，它明確指示 RabbitMQ 建立一個 Quorum Queue 而非傳統佇列。</li>
+<li>Quorum Queue 透過在叢集中的多個節點間複製訊息，並使用 Raft 協定來確保訊息的一致性。當主節點故障時，會自動進行領導者選舉，實現故障轉移。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-Erlang-Cookie-與-Quorum-Queue-的關係"><a href="#3-Erlang-Cookie-與-Quorum-Queue-的關係" class="headerlink" title="3. Erlang Cookie 與 Quorum Queue 的關係"></a>3. Erlang Cookie 與 Quorum Queue 的關係</h3><p>Erlang Cookie 和 Quorum Queue 雖然都與 RabbitMQ 的高可用性相關，但它們在系統層次和功能上扮演著不同的角色，且存在明確的依賴關係：</p>
+<ul>
+<li><strong>Erlang Cookie：叢集的「地基」</strong><ul>
+<li><strong>作用：</strong> 它是 RabbitMQ 節點能夠相互發現、認證並形成一個統一叢集的基礎。沒有正確配置的 Erlang Cookie，多個 RabbitMQ 實例無法組成叢集。</li>
+<li><strong>層次：</strong> 屬於 RabbitMQ 底層的 Erlang 運行時環境配置，決定了叢集能否建立。</li>
+</ul>
+</li>
+<li><strong>Quorum Queue：叢集上的「高可用性建築」</strong><ul>
+<li><strong>作用：</strong> 它是 RabbitMQ 叢集建立後，在其之上提供的一種特殊佇列類型。它利用叢集的多節點特性，透過數據複製和共識演算法，實現訊息的強一致性、高可用性和自動故障轉移。</li>
+<li><strong>層次：</strong> 屬於 RabbitMQ 提供的應用層功能，依賴於一個已經正常運作的叢集。</li>
+</ul>
+</li>
+</ul>
+<p><strong>簡化邏輯：</strong></p>
+<p>可以將 Erlang Cookie 想像成是<strong>建立 RabbitMQ 叢集所需的「通行證」或「密碼」</strong>。只有持有相同通行證的節點才能進入同一個「俱樂部」（叢集）。</p>
+<p>而 Quorum Queue 則是這個「俱樂部」裡提供的一項<strong>「VIP 服務」</strong>。這項服務（高可用性、強一致性訊息）只有在俱樂部（叢集）已經成功建立並正常運作的前提下才能提供。如果俱樂部都沒成立，VIP 服務自然無從談起。</p>
+<p><strong>總結：</strong> 您必須先確保 Erlang Cookie 配置正確，使 RabbitMQ 叢集能夠成功建立並穩定運行，然後才能在該叢集上有效地宣告和利用 Quorum Queue，從而為您的應用程式提供高度可靠的訊息傳遞服務。</p>
 
                     
                 </div>
@@ -314,11 +342,11 @@
                             <ul class="post-tags-box border-box">
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Python/">Python</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Kubernetes/">Kubernetes</a>
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Overload/">Overload</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/RabbitMQ/">RabbitMQ</a>
                                     </li>
                                 
                             </ul>
@@ -334,31 +362,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cmio7wq1z0000cklcdv9tcv8z/"
-                                   title="RabbitMQ 叢集與 Quorum Queue 高可用性實踐"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">RabbitMQ 叢集與 Quorum Queue 高可用性實踐</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmfxrhekt0000t0lc7pcg1y95/"
-                                   title="FastAPI 中資料庫與外部 API 同步的實踐方法"
+                                   href="/blog/cminxs46f0000kslc8glh9y9f/"
+                                   title="Python 中的函式多載與型別提示： @overload"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">FastAPI 中資料庫與外部 API 同步的實踐方法</span>
+                                        <span class="post-nav-title-item text-ellipsis">Python 中的函式多載與型別提示： @overload</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -487,7 +499,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#overload-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-text">@overload 的核心概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E5%88%86%E6%9E%90%EF%BC%9AResourceSelector-%E7%9A%84-select-resource-%E5%87%BD%E5%BC%8F"><span class="nav-text">範例分析：ResourceSelector 的 select_resource 函式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%AF%84%E4%BE%8B"><span class="nav-text">程式碼範例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B8%BD%E7%B5%90"><span class="nav-text">總結</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AE-Erlang-Cookie-%E6%96%BC-Kubernetes-Secret"><span class="nav-text">1. 配置 Erlang Cookie 於 Kubernetes Secret</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%A3%E5%91%8A-Quorum-Queue"><span class="nav-text">2. 宣告 Quorum Queue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Erlang-Cookie-%E8%88%87-Quorum-Queue-%E7%9A%84%E9%97%9C%E4%BF%82"><span class="nav-text">3. Erlang Cookie 與 Quorum Queue 的關係</span></a></li></ol></li></ol>
     </div>
 </div>
 
@@ -670,7 +682,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#overload-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-text">@overload 的核心概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E5%88%86%E6%9E%90%EF%BC%9AResourceSelector-%E7%9A%84-select-resource-%E5%87%BD%E5%BC%8F"><span class="nav-text">範例分析：ResourceSelector 的 select_resource 函式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%AF%84%E4%BE%8B"><span class="nav-text">程式碼範例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B8%BD%E7%B5%90"><span class="nav-text">總結</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E9%85%8D%E7%BD%AE-Erlang-Cookie-%E6%96%BC-Kubernetes-Secret"><span class="nav-text">1. 配置 Erlang Cookie 於 Kubernetes Secret</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AE%A3%E5%91%8A-Quorum-Queue"><span class="nav-text">2. 宣告 Quorum Queue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Erlang-Cookie-%E8%88%87-Quorum-Queue-%E7%9A%84%E9%97%9C%E4%BF%82"><span class="nav-text">3. Erlang Cookie 與 Quorum Queue 的關係</span></a></li></ol></li></ol>
     </div>
 </div>
 
