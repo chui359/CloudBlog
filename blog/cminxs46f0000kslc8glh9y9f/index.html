@@ -9,7 +9,7 @@
     
     <title>
         
-            FastAPI 中資料庫與外部 API 同步的實踐方法 |
+            Python 中的函式多載與型別提示： @overload |
         
         Cloudy&#39;s blog
     </title>
@@ -192,7 +192,7 @@
             <div class="post-content-bottom border-box">
                 
                     <div class="post-title">
-                        FastAPI 中資料庫與外部 API 同步的實踐方法
+                        Python 中的函式多載與型別提示： @overload
                     </div>
                 
 
@@ -218,13 +218,13 @@
         
             <span class="meta-info-item post-create-date">
                 <i class="icon fa-solid fa-calendar-plus"></i>&nbsp;
-                <span class="datetime">2025-09-24 16:58:26</span>
+                <span class="datetime">2025-12-02 10:04:14</span>
             </span>
 
             
                 <span class="meta-info-item post-update-date">
                     <i class="icon fa-solid fa-file-pen"></i>&nbsp;
-                    <span class="datetime" data-updated="Wed Sep 24 2025 17:07:57 GMT+0800">2025-09-24 17:07:57</span>
+                    <span class="datetime" data-updated="Tue Dec 02 2025 14:46:26 GMT+0800">2025-12-02 14:46:26</span>
                 </span>
             
         
@@ -247,13 +247,7 @@
                             <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Python/">Python</a></li>
                         
                     
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/FastAPI/">FastAPI</a></li>
-                        
-                    
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/OOP/">OOP</a></li>
-                        
-                    
-                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Interface/">Interface</a></li>
+                            <li class="tag-item"><span class="tag-separator"><i class="icon fas fa-hashtag"></i></span><a href="/tags/Overload/">Overload</a></li>
                         
                     
                 </ul>
@@ -282,48 +276,32 @@
                     
 
                     
-                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在需要同時操作本地資料庫和外部 API 的場景中，如何確保資料一致性是個重要課題。本文探討一種簡單有效的設計方法來解決這個問題。</p>
-<h2 id="處理問題"><a href="#處理問題" class="headerlink" title="處理問題"></a>處理問題</h2><p>傳統做法：先呼叫外部 API → 成功後更新資料庫 → 資料庫失敗時還原 API</p>
-<p>問題點：</p>
-<ol>
-<li>需要額外的 API 呼叫來還原狀態</li>
-<li>還原操作本身也可能失敗</li>
-<li>錯誤處理邏輯複雜</li>
-</ol>
-<h2 id="處理過程"><a href="#處理過程" class="headerlink" title="處理過程"></a>處理過程</h2><h3 id="設計思路對比"><a href="#設計思路對比" class="headerlink" title="設計思路對比"></a>設計思路對比</h3><p><strong>原始設計</strong>：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 呼叫外部 API (成功)</span><br><span class="line">2. 更新資料庫 (失敗)</span><br><span class="line">3. 還原外部 API (需要額外網路呼叫)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p><strong>優化設計</strong>：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 準備資料庫更新 (不 commit)</span><br><span class="line">2. 呼叫外部 API (成功)</span><br><span class="line">3. Commit 資料庫 (完成)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="核心實作概念"><a href="#核心實作概念" class="headerlink" title="核心實作概念"></a>核心實作概念</h3><h3 id="1-建立不自動-commit-的資料庫操作"><a href="#1-建立不自動-commit-的資料庫操作" class="headerlink" title="1. 建立不自動 commit 的資料庫操作"></a>1. 建立不自動 commit 的資料庫操作</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">update_without_commit</span>(<span class="params">db_session, data</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;更新資料但不 commit，等待手動控制&quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 更新資料</span></span><br><span class="line">    db_session.add(updated_record)</span><br><span class="line">    db_session.flush()  <span class="comment"># 寫入但不 commit</span></span><br><span class="line">    <span class="keyword">return</span> updated_record</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-優化後的業務邏輯"><a href="#2-優化後的業務邏輯" class="headerlink" title="2. 優化後的業務邏輯"></a>2. 優化後的業務邏輯</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">update_resource</span>(<span class="params">self, request_data</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;優化後的更新邏輯&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 步驟 1: 準備資料庫更新 (不 commit)</span></span><br><span class="line">        updated_data = <span class="keyword">await</span> <span class="variable language_">self</span>.repository.update_without_commit(</span><br><span class="line">            resource_id=request_data.<span class="built_in">id</span>,</span><br><span class="line">            new_name=request_data.name</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 步驟 2: 呼叫外部 API</span></span><br><span class="line">        api_result = <span class="keyword">await</span> <span class="variable language_">self</span>.external_client.update_resource(</span><br><span class="line">            resource_id, request_data.name</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> api_result.success:</span><br><span class="line">            <span class="comment"># API 失敗 → 直接 rollback</span></span><br><span class="line">            <span class="variable language_">self</span>.db_session.rollback()</span><br><span class="line">            <span class="keyword">raise</span> Exception(<span class="string">&quot;External API failed&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 步驟 3: API 成功 → commit 資料庫</span></span><br><span class="line">        <span class="variable language_">self</span>.db_session.commit()</span><br><span class="line">        <span class="keyword">return</span> updated_data</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> error:</span><br><span class="line">        <span class="comment"># 任何錯誤都 rollback</span></span><br><span class="line">        <span class="variable language_">self</span>.db_session.rollback()</span><br><span class="line">        <span class="keyword">raise</span> error</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="設計優勢"><a href="#設計優勢" class="headerlink" title="設計優勢"></a>設計優勢</h3><ol>
-<li><strong>簡化錯誤處理</strong>：只需要 rollback，不需要還原 API</li>
-<li><strong>減少網路呼叫</strong>：失敗時不需要額外的還原請求</li>
-<li><strong>提高一致性</strong>：資料庫和外部系統狀態更容易同步</li>
-<li><strong>程式碼更清晰</strong>：邏輯更直觀易懂</li>
-</ol>
-<h3 id="注意事項"><a href="#注意事項" class="headerlink" title="注意事項"></a>注意事項</h3><blockquote>
-<p>使用建議：</p>
+                         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在 Python 的世界裡，函式多載 (Function Overloading) 並不像 C# 那樣，允許我們定義多個同名但參數簽名不同的函式。然而，在開發複雜的應用程式或函式庫時，我們經常希望同一個函式能根據不同的輸入參數，提供不同的行為或回傳型別。這時候，<code>typing</code> 模組中的 <code>@overload</code> 裝飾器就成了我們的得力助手，它能在不犧牲型別安全性的前提下，為函式提供更豐富、更精確的「使用說明」。</p>
+<h2 id="處理問題"><a href="#處理問題" class="headerlink" title="處理問題"></a>處理問題</h2><p><strong>問題</strong>: 如何在 Python 中為同一個函式提供多種不同的參數簽名 (signature) 和回傳型別提示，以提升程式碼的可讀性、可維護性，並讓型別檢查工具（如 Mypy, Pyright 等）能正確地捕捉潛在錯誤？</p>
+<p><strong>解決方法</strong>: 使用 <code>@overload</code> 裝飾器來定義函式的多個「型別簽名」，並搭配一個實際的函式實作來處理所有情況。這讓開發者和型別檢查工具都能清楚地知道，在不同呼叫方式下，函式預期接收什麼參數，以及會回傳什麼結果。</p>
+<h2 id="處理過程"><a href="#處理過程" class="headerlink" title="處理過程"></a>處理過程</h2><h3 id="overload-的核心概念"><a href="#overload-的核心概念" class="headerlink" title="@overload 的核心概念"></a>@overload 的核心概念</h3><p>@overload 並非實現真正的函式多載，而是為型別檢查工具提供多個函式簽名的「宣告」。你可以將它想像成是為你的函式寫了多份「使用手冊」或「規格說明書」：</p>
 <ul>
-<li>適合外部 API 回應時間較短的場景 (&lt; 30 秒)</li>
-<li>需要注意資料庫連線佔用時間</li>
-<li>可搭配 timeout 機制避免長時間佔用資源</li>
+<li>每份 @overload 定義都像是一份獨立的「使用手冊」，說明了在特定參數組合下，函式預期接收的參數型別和回傳的結果型別。</li>
+<li>這些「使用手冊」只供型別檢查工具參考，它們本身不包含任何實際的程式邏輯。</li>
+<li>實際的函式邏輯只會存在於一個沒有 @overload 裝飾的同名函式中。這個函式的簽名（參數和回傳型別）必須能夠兼容所有 @overload 宣告的簽名，確保它能處理所有可能的呼叫情況。</li>
 </ul>
-</blockquote>
-<h3 id="進階應用"><a href="#進階應用" class="headerlink" title="進階應用"></a>進階應用</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加入 timeout 控制</span></span><br><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">update_with_timeout</span>(<span class="params">self, request_data, timeout=<span class="number">30</span></span>):</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">await</span> asyncio.wait_for(</span><br><span class="line">            <span class="variable language_">self</span>.update_resource(request_data),</span><br><span class="line">            timeout=timeout</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">except</span> asyncio.TimeoutError:</span><br><span class="line">        <span class="variable language_">self</span>.db_session.rollback()</span><br><span class="line">        <span class="keyword">raise</span> Exception(<span class="string">&quot;Operation timeout&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="範例分析：ResourceSelector-的-select-resource-函式"><a href="#範例分析：ResourceSelector-的-select-resource-函式" class="headerlink" title="範例分析：ResourceSelector 的 select_resource 函式"></a>範例分析：ResourceSelector 的 select_resource 函式</h3><p>讓我們以一個更通用的 <code>ResourceSelector</code> 類別為例，它負責根據資源 ID 和一個旗標來選擇不同類型的資源處理器。</p>
+<p>我們希望 <code>select_resource</code> 函式能有以下兩種明確的型別行為：</p>
+<ol>
+<li>如果只提供一個 <code>resource_id</code>，它回傳一個 <code>ResourceBase</code> 類型的處理器。</li>
+<li>如果提供 <code>resource_id</code> 並且明確指定 <code>detailed=True</code>，它回傳一個 <code>DetailedResourceBase</code> 類型的處理器。</li>
+</ol>
+<h3 id="程式碼範例"><a href="#程式碼範例" class="headerlink" title="程式碼範例"></a>程式碼範例</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">python</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> overload, <span class="type">Literal</span>, <span class="type">Type</span>, <span class="type">Union</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 假設這是我們的基礎資源處理器介面</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceBase</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">process</span>(<span class="params">self, data: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;處理基本資源資料&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">f&quot;處理基本資源: <span class="subst">&#123;data&#125;</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 假設這是詳細資源處理器介面，繼承自基礎介面</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DetailedResourceBase</span>(<span class="title class_ inherited__">ResourceBase</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">analyze</span>(<span class="params">self, data: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;對資源資料進行詳細分析&quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> &#123;<span class="string">&quot;analysis_result&quot;</span>: <span class="string">f&quot;詳細分析結果: <span class="subst">&#123;data&#125;</span>&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResourceSelector</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;負責根據 ID 選擇合適的資源處理器類別&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 第一個 @overload 定義：只傳入 resource_id</span></span><br><span class="line"><span class="meta">    @overload</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_resource</span>(<span class="params">self, resource_id: <span class="built_in">str</span></span>) -&gt; <span class="type">Type</span>[ResourceBase]: ...</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 第二個 @overload 定義：傳入 resource_id 且 detailed=True</span></span><br><span class="line"><span class="meta">    @overload</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_resource</span>(<span class="params"></span></span><br><span class="line"><span class="params">        self, resource_id: <span class="built_in">str</span>, detailed: <span class="type">Literal</span>[<span class="literal">True</span>]</span></span><br><span class="line"><span class="params">    </span>) -&gt; <span class="type">Type</span>[DetailedResourceBase]: ...</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 實際的函式實作：處理所有情況</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">select_resource</span>(<span class="params"></span></span><br><span class="line"><span class="params">        self, resource_id: <span class="built_in">str</span>, detailed: <span class="built_in">bool</span> = <span class="literal">False</span></span></span><br><span class="line"><span class="params">    </span>) -&gt; <span class="type">Union</span>[<span class="type">Type</span>[ResourceBase], <span class="type">Type</span>[DetailedResourceBase]]:</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        根據資源 ID 選擇合適的資源處理器類別</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            resource_id: 目標資源的唯一識別符</span></span><br><span class="line"><span class="string">            detailed: 是否需要詳細的資源處理器 (預設為 False)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Returns:</span></span><br><span class="line"><span class="string">            合適的資源處理器類別 (ResourceBase 或 DetailedResourceBase)</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;正在選擇資源處理器：ID=<span class="subst">&#123;resource_id&#125;</span>, 詳細模式=<span class="subst">&#123;detailed&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 簡化邏輯：根據 ID 和 detailed 旗標回傳不同類別</span></span><br><span class="line">        <span class="keyword">if</span> <span class="string">&quot;special&quot;</span> <span class="keyword">in</span> resource_id <span class="keyword">and</span> detailed:</span><br><span class="line">            <span class="comment"># 模擬特定條件下的詳細處理器</span></span><br><span class="line">            <span class="keyword">class</span> <span class="title class_">SpecialDetailedResource</span>(<span class="title class_ inherited__">DetailedResourceBase</span>):</span><br><span class="line">                <span class="keyword">def</span> <span class="title function_">analyze</span>(<span class="params">self, data: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">                    <span class="keyword">return</span> &#123;<span class="string">&quot;special_detailed_analysis&quot;</span>: <span class="string">f&quot;特殊詳細分析結果: <span class="subst">&#123;data&#125;</span>&quot;</span>&#125;</span><br><span class="line">            <span class="keyword">return</span> SpecialDetailedResource</span><br><span class="line">        <span class="keyword">elif</span> detailed:</span><br><span class="line">            <span class="keyword">return</span> DetailedResourceBase</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> ResourceBase</span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 範例使用 ---</span></span><br><span class="line">selector = ResourceSelector()</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;--- 情況一：只提供 resource_id ---&quot;</span>)</span><br><span class="line"><span class="comment"># 型別檢查工具會認為 basic_processor_class 是 Type[ResourceBase]</span></span><br><span class="line">basic_processor_class = selector.select_resource(<span class="string">&quot;item_123&quot;</span>)</span><br><span class="line">basic_instance = basic_processor_class()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;基本處理器結果: <span class="subst">&#123;basic_instance.process(<span class="string">&#x27;資料A&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line"><span class="comment"># basic_instance.analyze(&#x27;資料A&#x27;) # 如果呼叫這行，Mypy 會報錯，因為 ResourceBase 沒有 analyze 方法</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n--- 情況二：提供 resource_id 並明確指定 detailed=True ---&quot;</span>)</span><br><span class="line"><span class="comment"># 型別檢查工具會認為 detailed_processor_class 是 Type[DetailedResourceBase]</span></span><br><span class="line">detailed_processor_class = selector.select_resource(<span class="string">&quot;special_item_456&quot;</span>, detailed=<span class="literal">True</span>)</span><br><span class="line">detailed_instance = detailed_processor_class()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;詳細處理器結果: <span class="subst">&#123;detailed_instance.process(<span class="string">&#x27;資料B&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;詳細分析結果: <span class="subst">&#123;detailed_instance.analyze(<span class="string">&#x27;資料B&#x27;</span>)&#125;</span>&quot;</span>) <span class="comment"># Mypy 不會報錯</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n--- 情況三：提供 resource_id 但 detailed=False (預設值) ---&quot;</span>)</span><br><span class="line"><span class="comment"># 型別檢查工具會認為 another_basic_processor_class 是 Type[ResourceBase]</span></span><br><span class="line">another_basic_processor_class = selector.select_resource(<span class="string">&quot;another_item_789&quot;</span>, detailed=<span class="literal">False</span>)</span><br><span class="line">another_basic_instance = another_basic_processor_class()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;另一個基本處理器結果: <span class="subst">&#123;another_basic_instance.process(<span class="string">&#x27;資料C&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p>適用場景：</p>
+<p>備註：</p>
 <ul>
-<li>需要同時操作本地資料庫和外部 API 的業務邏輯</li>
-<li>對資料一致性有較高要求的系統</li>
-<li>希望簡化錯誤處理邏輯的專案</li>
+<li><code>@overload</code> 裝飾器定義的函式體通常只包含 <code>...</code> (Ellipsis)，表示它沒有實際的執行邏輯，僅用於型別提示。</li>
+<li>實際執行的函式必須放在所有 <code>@overload</code> 定義之後，且其簽名必須能夠「覆蓋」所有 <code>@overload</code> 宣告的簽名。</li>
+<li>使用 <code>Type[]</code> 是因為我們回傳的是類別本身，而不是類別的實例。</li>
 </ul>
 </blockquote>
+<h3 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h3><p><code>@overload</code> 裝飾器是 Python 型別提示系統中一個強大的工具，它讓你的函式在型別層面擁有「多種面貌」，而底層的實作則統一處理所有情況。這大大提升了 Python 程式碼的型別安全性、可讀性，並改善了開發體驗，尤其是在大型專案或函式庫開發中，能有效減少潛在的型別錯誤。</p>
 
                     
                 </div>
@@ -340,15 +318,7 @@
                                     </li>
                                 
                                     <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/FastAPI/">FastAPI</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/OOP/">OOP</a>
-                                    </li>
-                                
-                                    <li class="tag-item border-box">
-                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Interface/">Interface</a>
+                                        <i class="icon fas fa-hashtag"></i>&nbsp;<a href="/tags/Overload/">Overload</a>
                                     </li>
                                 
                             </ul>
@@ -364,31 +334,15 @@
                 
                     <div class="post-nav border-box">
                         
-                            <div class="prev-post">
-                                <a class="prev"
-                                   rel="prev"
-                                   href="/blog/cminxs46f0000kslc8glh9y9f/"
-                                   title="Python 中的函式多載與型別提示： @overload"
-                                >
-                                    <span class="left arrow-icon flex-center">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
-                                    <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">Python 中的函式多載與型別提示： @overload</span>
-                                        <span class="post-nav-item">Prev posts</span>
-                                    </span>
-                                </a>
-                            </div>
-                        
                         
                             <div class="next-post">
                                 <a class="next"
                                    rel="next"
-                                   href="/blog/cmfp6dn660000pwlcb7onessq/"
-                                   title="FastAPI異常處理架構重構指南 - 異常分類管理"
+                                   href="/blog/cmfxrhekt0000t0lc7pcg1y95/"
+                                   title="FastAPI 中資料庫與外部 API 同步的實踐方法"
                                 >
                                     <span class="title flex-center">
-                                        <span class="post-nav-title-item text-ellipsis">FastAPI異常處理架構重構指南 - 異常分類管理</span>
+                                        <span class="post-nav-title-item text-ellipsis">FastAPI 中資料庫與外部 API 同步的實踐方法</span>
                                         <span class="post-nav-item">Next posts</span>
                                     </span>
                                     <span class="right arrow-icon flex-center">
@@ -517,7 +471,7 @@
             <div class="pc-post-toc right-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A8%AD%E8%A8%88%E6%80%9D%E8%B7%AF%E5%B0%8D%E6%AF%94"><span class="nav-text">設計思路對比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%AF%A6%E4%BD%9C%E6%A6%82%E5%BF%B5"><span class="nav-text">核心實作概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B%E4%B8%8D%E8%87%AA%E5%8B%95-commit-%E7%9A%84%E8%B3%87%E6%96%99%E5%BA%AB%E6%93%8D%E4%BD%9C"><span class="nav-text">1. 建立不自動 commit 的資料庫操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%84%AA%E5%8C%96%E5%BE%8C%E7%9A%84%E6%A5%AD%E5%8B%99%E9%82%8F%E8%BC%AF"><span class="nav-text">2. 優化後的業務邏輯</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A8%AD%E8%A8%88%E5%84%AA%E5%8B%A2"><span class="nav-text">設計優勢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><span class="nav-text">注意事項</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%B2%E9%9A%8E%E6%87%89%E7%94%A8"><span class="nav-text">進階應用</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#overload-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-text">@overload 的核心概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E5%88%86%E6%9E%90%EF%BC%9AResourceSelector-%E7%9A%84-select-resource-%E5%87%BD%E5%BC%8F"><span class="nav-text">範例分析：ResourceSelector 的 select_resource 函式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%AF%84%E4%BE%8B"><span class="nav-text">程式碼範例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B8%BD%E7%B5%90"><span class="nav-text">總結</span></a></li></ol></li></ol>
     </div>
 </div>
 
@@ -700,7 +654,7 @@
             <div class="tablet-post-toc">
                 <div class="post-toc-wrap border-box">
     <div class="post-toc border-box">
-        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A8%AD%E8%A8%88%E6%80%9D%E8%B7%AF%E5%B0%8D%E6%AF%94"><span class="nav-text">設計思路對比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%AF%A6%E4%BD%9C%E6%A6%82%E5%BF%B5"><span class="nav-text">核心實作概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BB%BA%E7%AB%8B%E4%B8%8D%E8%87%AA%E5%8B%95-commit-%E7%9A%84%E8%B3%87%E6%96%99%E5%BA%AB%E6%93%8D%E4%BD%9C"><span class="nav-text">1. 建立不自動 commit 的資料庫操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%84%AA%E5%8C%96%E5%BE%8C%E7%9A%84%E6%A5%AD%E5%8B%99%E9%82%8F%E8%BC%AF"><span class="nav-text">2. 優化後的業務邏輯</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A8%AD%E8%A8%88%E5%84%AA%E5%8B%A2"><span class="nav-text">設計優勢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><span class="nav-text">注意事項</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%B2%E9%9A%8E%E6%87%89%E7%94%A8"><span class="nav-text">進階應用</span></a></li></ol></li></ol>
+        <ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E5%95%8F%E9%A1%8C"><span class="nav-text">處理問題</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%95%E7%90%86%E9%81%8E%E7%A8%8B"><span class="nav-text">處理過程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#overload-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="nav-text">@overload 的核心概念</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AF%84%E4%BE%8B%E5%88%86%E6%9E%90%EF%BC%9AResourceSelector-%E7%9A%84-select-resource-%E5%87%BD%E5%BC%8F"><span class="nav-text">範例分析：ResourceSelector 的 select_resource 函式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%AF%84%E4%BE%8B"><span class="nav-text">程式碼範例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B8%BD%E7%B5%90"><span class="nav-text">總結</span></a></li></ol></li></ol>
     </div>
 </div>
 
